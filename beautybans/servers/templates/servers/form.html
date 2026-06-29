@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} сервер - CS Bans{% endblock %}
+
+{% block content %}
+<h1>{{ action }} сервер</h1>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="{{ form.name.id_for_label }}" class="form-label">Название</label>
+                {{ form.name }}
+                {% if form.name.errors %}
+                <div class="text-danger">{{ form.name.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-8 mb-3">
+                    <label for="{{ form.ip.id_for_label }}" class="form-label">IP адрес</label>
+                    {{ form.ip }}
+                    {% if form.ip.errors %}
+                    <div class="text-danger">{{ form.ip.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.port.id_for_label }}" class="form-label">Порт</label>
+                    {{ form.port }}
+                    {% if form.port.errors %}
+                    <div class="text-danger">{{ form.port.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.rcon_password.id_for_label }}" class="form-label">RCON пароль</label>
+                {{ form.rcon_password }}
+                {% if form.rcon_password.errors %}
+                <div class="text-danger">{{ form.rcon_password.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.game_type.id_for_label }}" class="form-label">Тип игры</label>
+                {{ form.game_type }}
+                {% if form.game_type.errors %}
+                <div class="text-danger">{{ form.game_type.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3 form-check">
+                {{ form.is_active }}
+                <label class="form-check-label" for="{{ form.is_active.id_for_label }}">
+                    Сервер активен
+                </label>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="{% url 'servers:list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

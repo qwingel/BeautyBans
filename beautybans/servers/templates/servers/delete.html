@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Удалить сервер - CS Bans{% endblock %}
+
+{% block content %}
+<h1>Удаление сервера</h1>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <h5>Вы уверены, что хотите удалить сервер?</h5>
+            <p class="mb-0"><strong>{{ server.name }}</strong> ({{ server.ip }}:{{ server.port }})</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">Удалить</button>
+                <a href="{% url 'servers:list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Серверы - CS Bans{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Серверы</h1>
+    <a href="{% url 'servers:add' %}" class="btn btn-primary">Добавить сервер</a>
+</div>
+
+{% if servers %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Адрес</th>
+                <th>Тип игры</th>
+                <th>Токен</th>
+                <th>Статус</th>
+                <th>Создан</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for server in servers %}
+            <tr>
+                <td>{{ server.name }}</td>
+                <td>{{ server.ip }}:{{ server.port }}</td>
+                <td>{{ server.get_game_type_display }}</td>
+                <td><code>{{ server.token }}</code></td>
+                <td>
+                    {% if server.is_active %}
+                    <span class="badge bg-success">Активен</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Неактивен</span>
+                    {% endif %}
+                </td>
+                <td>{{ server.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'servers:edit' server.pk %}" class="btn btn-sm btn-warning">Изменить</a>
+                    <a href="{% url 'servers:delete' server.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Серверов пока нет. <a href="{% url 'servers:add' %}">Добавить первый сервер</a>
+</div>
+{% endif %}
+{% endblock %}
