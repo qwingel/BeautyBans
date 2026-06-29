@@ -19,7 +19,6 @@ class AdminGroup(models.Model):
 class Admin(models.Model):
     steam_id = models.CharField(max_length=64, unique=True)
     name = models.CharField(max_length=64)
-    group = models.ForeignKey(AdminGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='admins')
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -34,8 +33,9 @@ class Admin(models.Model):
 class AdminServer(models.Model):
     admin = models.ForeignKey(Admin, on_delete=models.CASCADE, related_name='server_permissions')
     server = models.ForeignKey(Server, on_delete=models.CASCADE, related_name='admin_permissions')
-    flags = models.CharField(max_length=32, default='', blank=True)
-    immunity = models.IntegerField(default=0)
+    group = models.ForeignKey(AdminGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='server_assignments')
+    flags = models.CharField(max_length=32, default='', blank=True, help_text='Индивидуальные флаги (если не используется группа)')
+    immunity = models.IntegerField(default=0, help_text='Индивидуальный иммунитет (если не используется группа)')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -45,3 +45,9 @@ class AdminServer(models.Model):
 
     def __str__(self):
         return f'{self.admin.name} → {self.server.name}'
+
+    def get_effective_flags(self):
+        return self.flags if self.flags else (self.group.flags if self.group else '')
+
+    def get_effective_immunity(self):
+        return self.immunity if self.immunity else (self.group.immunity if self.group else 0)

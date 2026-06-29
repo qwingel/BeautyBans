@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Удалить администратора - CS Bans{% endblock %}
+
+{% block content %}
+<h1>Удаление администратора</h1>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <div class="alert alert-warning">
+            <h5>Вы уверены, что хотите удалить администратора?</h5>
+            <p class="mb-0"><strong>{{ admin.name }}</strong> ({{ admin.steam_id }})</p>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">Удалить</button>
+                <a href="{% url 'admins:admins_list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

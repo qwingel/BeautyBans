@@ -1,3 +1,151 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from .models import Admin, AdminGroup, AdminServer
+from .forms import AdminForm, AdminGroupForm, AdminServerForm
 
-# Create your views here.
+
+def admins_list(request):
+    admins = Admin.objects.all().order_by('-created_at')
+    return render(request, 'admins/admins_list.html', {'admins': admins})
+
+
+def admin_add(request):
+    if request.method == 'POST':
+        form = AdminForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('admins:admins_list')
+    else:
+        form = AdminForm()
+    return render(request, 'admins/admin_form.html', {'form': form, 'action': 'Добавить'})
+
+
+def admin_edit(request, pk):
+    admin = get_object_or_404(Admin, pk=pk)
+    if request.method == 'POST':
+        form = AdminForm(request.POST, instance=admin)
+        if form.is_valid():
+            form.save()
+            return redirect('admins:admins_list')
+    else:
+        form = AdminForm(instance=admin)
+    return render(request, 'admins/admin_form.html', {'form': form, 'action': 'Редактировать'})
+
+
+def admin_delete(request, pk):
+    admin = get_object_or_404(Admin, pk=pk)
+    if request.method == 'POST':
+        admin.delete()
+        return redirect('admins:admins_list')
+    return render(request, 'admins/admin_delete.html', {'admin': admin})
+
+
+def groups_list(request):
+    groups = AdminGroup.objects.all().order_by('name')
+    return render(request, 'admins/groups_list.html', {'groups': groups})
+
+
+def group_add(request):
+    if request.method == 'POST':
+        form = AdminGroupForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('admins:groups_list')
+    else:
+        form = AdminGroupForm()
+    return render(request, 'admins/group_form.html', {'form': form, 'action': 'Добавить'})
+
+
+def group_edit(request, pk):
+    group = get_object_or_404(AdminGroup, pk=pk)
+    if request.method == 'POST':
+        form = AdminGroupForm(request.POST, instance=group)
+        if form.is_valid():
+            form.save()
+            return redirect('admins:groups_list')
+    else:
+        form = AdminGroupForm(instance=group)
+    return render(request, 'admins/group_form.html', {'form': form, 'action': 'Редактировать'})
+
+
+def group_delete(request, pk):
+    group = get_object_or_404(AdminGroup, pk=pk)
+    if request.method == 'POST':
+        group.delete()
+        return redirect('admins:groups_list')
+    return render(request, 'admins/group_delete.html', {'group': group})
+
+
+def permissions_list(request):
+    from servers.models import Server
+
+    permissions = AdminServer.objects.all().select_related('admin', 'server', 'group').order_by('-created_at')
+
+    server_filter = request.GET.get('server')
+    group_filter = request.GET.get('group')
+
+    if server_filter:
+        permissions = permissions.filter(server_id=server_filter)
+
+    if group_filter:
+        permissions = permissions.filter(group_id=group_filter)
+
+    servers = Server.objects.all().order_by('name')
+    groups = AdminGroup.objects.all().order_by('name')
+
+    context = {
+        'permissions': permissions,
+        'servers': servers,
+        'groups': groups,
+        'selected_server': server_filter,
+        'selected_group': group_filter,
+    }
+    return render(request, 'admins/permissions_list.html', context)
+
+
+def permission_add(request):
+    import json
+
+    if request.method == 'POST':
+        form = AdminServerForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('admins:permissions_list')
+    else:
+        form = AdminServerForm()
+
+    groups_data = {g.id: {'flags': g.flags, 'immunity': g.immunity} for g in AdminGroup.objects.all()}
+
+    return render(request, 'admins/permission_form.html', {
+        'form': form,
+        'action': 'Добавить',
+        'groups_data_json': json.dumps(groups_data)
+    })
+
+
+def permission_edit(request, pk):
+    import json
+
+    permission = get_object_or_404(AdminServer, pk=pk)
+    if request.method == 'POST':
+        form = AdminServerForm(request.POST, instance=permission)
+        if form.is_valid():
+            form.save()
+            return redirect('admins:permissions_list')
+    else:
+        form = AdminServerForm(instance=permission)
+
+    groups_data = {g.id: {'flags': g.flags, 'immunity': g.immunity} for g in AdminGroup.objects.all()}
+
+    return render(request, 'admins/permission_form.html', {
+        'form': form,
+        'action': 'Редактировать',
+        'groups_data_json': json.dumps(groups_data)
+    })
+
+
+def permission_delete(request, pk):
+    permission = get_object_or_404(AdminServer, pk=pk)
+    if request.method == 'POST':
+        permission.delete()
+        return redirect('admins:permissions_list')
+    return render(request, 'admins/permission_delete.html', {'permission': permission})

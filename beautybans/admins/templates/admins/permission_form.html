@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} права - CS Bans{% endblock %}
+
+{% block content %}
+<h1>{{ action }} права доступа</h1>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="{{ form.admin.id_for_label }}" class="form-label">Администратор</label>
+                {{ form.admin }}
+                {% if form.admin.errors %}
+                <div class="text-danger">{{ form.admin.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.server.id_for_label }}" class="form-label">Сервер</label>
+                {{ form.server }}
+                {% if form.server.errors %}
+                <div class="text-danger">{{ form.server.errors }}</div>
+                {% endif %}
+            </div>
+
+            <hr>
+            <p class="text-muted">Выберите группу ИЛИ задайте индивидуальные права:</p>
+
+            <div class="mb-3">
+                <label for="{{ form.group.id_for_label }}" class="form-label">Группа</label>
+                {{ form.group }}
+                <small class="form-text text-muted">Если выбрана группа, админ наследует её флаги и иммунитет</small>
+                {% if form.group.errors %}
+                <div class="text-danger">{{ form.group.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.flags.id_for_label }}" class="form-label">Индивидуальные флаги</label>
+                {{ form.flags }}
+                <small class="form-text text-muted">Используется, если группа не выбрана</small>
+                {% if form.flags.errors %}
+                <div class="text-danger">{{ form.flags.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.immunity.id_for_label }}" class="form-label">Индивидуальный иммунитет</label>
+                {{ form.immunity }}
+                <small class="form-text text-muted">Используется, если группа не выбрана</small>
+                {% if form.immunity.errors %}
+                <div class="text-danger">{{ form.immunity.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="{% url 'admins:permissions_list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const groupsData = {{ groups_data_json|safe }};
+    const groupSelect = document.getElementById('{{ form.group.id_for_label }}');
+    const flagsInput = document.getElementById('{{ form.flags.id_for_label }}');
+    const immunityInput = document.getElementById('{{ form.immunity.id_for_label }}');
+
+    let initialGroupFlags = '';
+    let initialGroupImmunity = 0;
+
+    groupSelect.addEventListener('change', function() {
+        const groupId = this.value;
+
+        if (groupId && groupsData[groupId]) {
+            const groupData = groupsData[groupId];
+            initialGroupFlags = groupData.flags;
+            initialGroupImmunity = groupData.immunity;
+
+            flagsInput.value = groupData.flags;
+            immunityInput.value = groupData.immunity;
+        } else {
+            initialGroupFlags = '';
+            initialGroupImmunity = 0;
+            flagsInput.value = '';
+            immunityInput.value = '0';
+        }
+    });
+
+    function checkAndResetGroup() {
+        if (!groupSelect.value) return;
+
+        const currentFlags = flagsInput.value;
+        const currentImmunity = immunityInput.value;
+
+        if (currentFlags !== initialGroupFlags || currentImmunity != initialGroupImmunity) {
+            groupSelect.value = '';
+            initialGroupFlags = '';
+            initialGroupImmunity = 0;
+        }
+    }
+
+    flagsInput.addEventListener('input', checkAndResetGroup);
+    immunityInput.addEventListener('input', checkAndResetGroup);
+
+    if (groupSelect.value && groupsData[groupSelect.value]) {
+        initialGroupFlags = groupsData[groupSelect.value].flags;
+        initialGroupImmunity = groupsData[groupSelect.value].immunity;
+    }
+});
+</script>
+
+{% endblock %}

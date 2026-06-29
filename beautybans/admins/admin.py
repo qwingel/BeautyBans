@@ -10,13 +10,13 @@ class AdminGroupAdmin(admin.ModelAdmin):
 
 @admin.register(Admin)
 class AdminAdmin(admin.ModelAdmin):
-    list_display = ('name', 'steam_id', 'group', 'is_active', 'created_at')
-    list_filter = ('is_active', 'group')
+    list_display = ('name', 'steam_id', 'is_active', 'created_at')
+    list_filter = ('is_active',)
     search_fields = ('name', 'steam_id')
 
 
 @admin.register(AdminServer)
 class AdminServerAdmin(admin.ModelAdmin):
-    list_display = ('admin', 'server', 'flags', 'immunity', 'created_at')
-    list_filter = ('server',)
+    list_display = ('admin', 'server', 'group', 'flags', 'immunity', 'created_at')
+    list_filter = ('server', 'group')
     search_fields = ('admin__name', 'server__name')

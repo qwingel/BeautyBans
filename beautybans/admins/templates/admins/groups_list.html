@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Группы администраторов - CS Bans{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Группы администраторов</h1>
+    <a href="{% url 'admins:group_add' %}" class="btn btn-primary">Добавить группу</a>
+</div>
+
+{% if groups %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Флаги</th>
+                <th>Иммунитет</th>
+                <th>Создана</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for group in groups %}
+            <tr>
+                <td>{{ group.name }}</td>
+                <td><code>{{ group.flags|default:"—" }}</code></td>
+                <td>{{ group.immunity }}</td>
+                <td>{{ group.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'admins:group_edit' group.pk %}" class="btn btn-sm btn-warning">Изменить</a>
+                    <a href="{% url 'admins:group_delete' group.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Групп пока нет. <a href="{% url 'admins:group_add' %}">Добавить первую группу</a>
+</div>
+{% endif %}
+{% endblock %}

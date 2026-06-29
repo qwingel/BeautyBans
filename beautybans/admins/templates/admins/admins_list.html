@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block title %}Администраторы - CS Bans{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Администраторы</h1>
+    <a href="{% url 'admins:admin_add' %}" class="btn btn-primary">Добавить администратора</a>
+</div>
+
+{% if admins %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Имя</th>
+                <th>Steam ID</th>
+                <th>Статус</th>
+                <th>Создан</th>
+                <th>Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for admin in admins %}
+            <tr>
+                <td>{{ admin.name }}</td>
+                <td><code>{{ admin.steam_id }}</code></td>
+                <td>
+                    {% if admin.is_active %}
+                    <span class="badge bg-success">Активен</span>
+                    {% else %}
+                    <span class="badge bg-secondary">Неактивен</span>
+                    {% endif %}
+                </td>
+                <td>{{ admin.created_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'admins:admin_edit' admin.pk %}" class="btn btn-sm btn-warning">Изменить</a>
+                    <a href="{% url 'admins:admin_delete' admin.pk %}" class="btn btn-sm btn-danger">Удалить</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Администраторов пока нет. <a href="{% url 'admins:admin_add' %}">Добавить первого администратора</a>
+</div>
+{% endif %}
+{% endblock %}
