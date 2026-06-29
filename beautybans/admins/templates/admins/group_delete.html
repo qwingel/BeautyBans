@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Удалить группу - CS Bans{% endblock %}
+{% block title %}Удалить группу - BeautyBans{% endblock %}
 
 {% block content %}
 <h1>Удаление группы</h1>
@@ -16,7 +16,7 @@
             {% csrf_token %}
             <div class="d-flex gap-2">
                 <button type="submit" class="btn btn-danger">Удалить</button>
-                <a href="{% url 'admins:groups_list' %}" class="btn btn-secondary">Отмена</a>
+                <a href="{% url 'admins:admin_panel' %}" class="btn btn-secondary">Отмена</a>
             </div>
         </form>
     </div>

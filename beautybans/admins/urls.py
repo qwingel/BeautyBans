@@ -1,10 +1,11 @@
 from django.urls import path
-from . import views
+from . import views, api
 
 app_name = 'admins'
 
 urlpatterns = [
-    path('', views.admins_list, name='admins_list'),
+    path('', views.admin_panel, name='admin_panel'),
+    path('admins/', views.admins_list, name='admins_list'),
     path('add/', views.admin_add, name='admin_add'),
     path('<int:pk>/edit/', views.admin_edit, name='admin_edit'),
     path('<int:pk>/delete/', views.admin_delete, name='admin_delete'),
@@ -18,4 +19,7 @@ urlpatterns = [
     path('permissions/add/', views.permission_add, name='permission_add'),
     path('permissions/<int:pk>/edit/', views.permission_edit, name='permission_edit'),
     path('permissions/<int:pk>/delete/', views.permission_delete, name='permission_delete'),
+
+    # API
+    path('api/check/', api.check_admin, name='api_check_admin'),
 ]

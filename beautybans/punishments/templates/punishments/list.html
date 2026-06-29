@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+
+{% block title %}Наказания - BeautyBans{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Наказания</h1>
+    <a href="{% url 'punishments:add' %}" class="btn btn-primary">Добавить наказание</a>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Тип наказания</label>
+                <select name="type" class="form-control" onchange="this.form.submit()">
+                    <option value="">Все типы</option>
+                    <option value="ban" {% if selected_type == 'ban' %}selected{% endif %}>Бан</option>
+                    <option value="mute" {% if selected_type == 'mute' %}selected{% endif %}>Мут</option>
+                    <option value="gag" {% if selected_type == 'gag' %}selected{% endif %}>Гаг</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Сервер</label>
+                <select name="server" class="form-control" onchange="this.form.submit()">
+                    <option value="">Все серверы</option>
+                    {% for server in servers %}
+                    <option value="{{ server.pk }}" {% if selected_server == server.pk|stringformat:"s" %}selected{% endif %}>
+                        {{ server.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Статус</label>
+                <select name="status" class="form-control" onchange="this.form.submit()">
+                    <option value="">Все</option>
+                    <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Активные</option>
+                    <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Неактивные</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="{% url 'punishments:list' %}" class="btn btn-secondary w-100">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if punishments %}
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Тип</th>
+                <th>Игрок</th>
+                <th>Сервер</th>
+                <th>Длительность</th>
+                <th>Выдано</th>
+                <th>Статус</th>
+                <th width="100">Действия</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for punishment in punishments %}
+            <tr class="clickable-row {% if not punishment.is_active %}table-success{% endif %}" data-punishment-id="{{ punishment.pk }}">
+                <td>
+                    {% if punishment.punishment_type == 'ban' %}
+                    <span class="badge bg-danger">Бан</span>
+                    {% elif punishment.punishment_type == 'mute' %}
+                    <span class="badge bg-warning text-dark">Мут</span>
+                    {% else %}
+                    <span class="badge bg-info">Гаг</span>
+                    {% endif %}
+                </td>
+                <td><strong>{{ punishment.target_name }}</strong></td>
+                <td>{{ punishment.server.name }}</td>
+                <td>
+                    {% if punishment.duration == 0 %}
+                    <span class="badge bg-dark">Перманент</span>
+                    {% else %}
+                    {{ punishment.duration }} мин
+                    {% endif %}
+                </td>
+                <td>{{ punishment.issued_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if punishment.is_active %}
+                    <span class="badge bg-danger">Активно</span>
+                    {% else %}
+                    <span class="badge bg-success">Снято</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="d-flex flex-column align-items-center gap-1">
+                        {% if punishment.is_active %}
+                        <a href="{% url 'punishments:unban' punishment.pk %}" class="btn btn-sm btn-success w-100">Снять</a>
+                        {% endif %}
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'punishments:edit' punishment.pk %}" class="action-icon text-warning" title="Редактировать">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            <a href="{% url 'punishments:delete' punishment.pk %}" class="action-icon text-danger" title="Удалить">
+                                <i class="bi bi-trash-fill"></i>
+                            </a>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            <tr class="collapse" id="details-{{ punishment.pk }}">
+                <td colspan="7">
+                    <div class="punishment-details">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Steam ID:</strong> <code>{{ punishment.target_steam_id }}</code><br>
+                                {% if punishment.target_ip %}
+                                <strong>IP:</strong> {{ punishment.target_ip }}
+                                {% if punishment.ban_subnet %}
+                                <span class="badge bg-warning text-dark">Бан по подсети</span>
+                                {% endif %}<br>
+                                {% endif %}
+                                <strong>Администратор:</strong> {{ punishment.admin.name|default:"Консоль" }}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Причина:</strong> {{ punishment.reason }}<br>
+                                {% if not punishment.is_active %}
+                                <strong>Снято:</strong>
+                                {% if punishment.unbanned_by %}
+                                    {{ punishment.unbanned_by.name }}
+                                {% else %}
+                                    Автоматически
+                                {% endif %}<br>
+                                <strong>Причина снятия:</strong> {{ punishment.unban_reason|default:"—" }}
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="alert alert-info">
+    Наказаний пока нет. <a href="{% url 'punishments:add' %}">Добавить первое наказание</a>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.clickable-row').forEach(function(row) {
+        row.addEventListener('click', function(e) {
+            // Проверяем, был ли клик на ссылке или кнопке
+            if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON' ||
+                e.target.closest('a') || e.target.closest('button')) {
+                return; // Если да, не раскрываем детали
+            }
+
+            const punishmentId = this.getAttribute('data-punishment-id');
+            const detailsRow = document.getElementById('details-' + punishmentId);
+            const collapse = new bootstrap.Collapse(detailsRow, {
+                toggle: true
+            });
+        });
+    });
+});
+</script>
+
+{% endblock %}

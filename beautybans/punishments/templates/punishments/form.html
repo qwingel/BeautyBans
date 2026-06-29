@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ action }} наказание - BeautyBans{% endblock %}
+
+{% block content %}
+<h1>{{ action }} наказание</h1>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="mb-3">
+                <label for="{{ form.punishment_type.id_for_label }}" class="form-label">Тип наказания</label>
+                {{ form.punishment_type }}
+                {% if form.punishment_type.errors %}
+                <div class="text-danger">{{ form.punishment_type.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.target_steam_id.id_for_label }}" class="form-label">Steam ID игрока</label>
+                    {{ form.target_steam_id }}
+                    {% if form.target_steam_id.errors %}
+                    <div class="text-danger">{{ form.target_steam_id.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.target_name.id_for_label }}" class="form-label">Имя игрока</label>
+                    {{ form.target_name }}
+                    {% if form.target_name.errors %}
+                    <div class="text-danger">{{ form.target_name.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label for="{{ form.target_ip.id_for_label }}" class="form-label">IP адрес</label>
+                    {{ form.target_ip }}
+                    <small class="form-text text-muted">Опционально</small>
+                    {% if form.target_ip.errors %}
+                    <div class="text-danger">{{ form.target_ip.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3 form-check">
+                {{ form.ban_subnet }}
+                <label class="form-check-label" for="{{ form.ban_subnet.id_for_label }}">
+                    Банить всю подсеть
+                </label>
+                <small class="form-text text-muted d-block">Защита от обхода через динамический IP</small>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.reason.id_for_label }}" class="form-label">Причина</label>
+                {{ form.reason }} 
+                {% if form.reason.errors %}
+                <div class="text-danger">{{ form.reason.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.admin.id_for_label }}" class="form-label">Администратор</label>
+                    {{ form.admin }}
+                    <small class="form-text text-muted">Оставьте пустым для консольного бана</small>
+                    {% if form.admin.errors %}
+                    <div class="text-danger">{{ form.admin.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.server.id_for_label }}" class="form-label">Сервер</label>
+                    {{ form.server }}
+                    {% if form.server.errors %}
+                    <div class="text-danger">{{ form.server.errors }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label for="{{ form.duration.id_for_label }}" class="form-label">Длительность (минуты)</label>
+                {{ form.duration }}
+                {% if form.duration.errors %}
+                <div class="text-danger">{{ form.duration.errors }}</div>
+                {% endif %}
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="{% url 'punishments:list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
