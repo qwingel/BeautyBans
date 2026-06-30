@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from .models import Punishment
 from .forms import PunishmentForm, UnbanForm
@@ -6,6 +7,7 @@ from servers.models import Server
 from admins.models import Admin
 
 
+@login_required
 def punishments_list(request):
     punishments = Punishment.objects.all().select_related('admin', 'server', 'unbanned_by')
 
@@ -36,6 +38,7 @@ def punishments_list(request):
     return render(request, 'punishments/list.html', context)
 
 
+@login_required
 def punishment_add(request):
     if request.method == 'POST':
         form = PunishmentForm(request.POST)
@@ -47,6 +50,7 @@ def punishment_add(request):
     return render(request, 'punishments/form.html', {'form': form, 'action': 'Добавить'})
 
 
+@login_required
 def punishment_edit(request, pk):
     punishment = get_object_or_404(Punishment, pk=pk)
     if request.method == 'POST':
@@ -59,6 +63,7 @@ def punishment_edit(request, pk):
     return render(request, 'punishments/form.html', {'form': form, 'action': 'Редактировать'})
 
 
+@login_required
 def punishment_delete(request, pk):
     punishment = get_object_or_404(Punishment, pk=pk)
     if request.method == 'POST':
@@ -67,6 +72,7 @@ def punishment_delete(request, pk):
     return render(request, 'punishments/delete.html', {'punishment': punishment})
 
 
+@login_required
 def punishment_unban(request, pk):
     punishment = get_object_or_404(Punishment, pk=pk)
 

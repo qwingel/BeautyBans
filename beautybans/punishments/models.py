@@ -53,6 +53,13 @@ class Punishment(models.Model):
                 return delta
         return None
 
+    def get_time_remaining_minutes(self):
+        """Возвращает оставшееся время в минутах"""
+        delta = self.get_time_remaining()
+        if delta:
+            return int(delta.total_seconds() / 60)
+        return None
+
     def auto_expire(self):
         """Автоматически снимает наказание если оно истекло"""
         if self.is_active and self.is_expired():

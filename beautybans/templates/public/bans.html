@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Наказания - BeautyBans{% endblock %}
+
+{% block content %}
+<!-- Фильтры -->
+<div class="card mb-3">
+    <div class="card-body">
+        <form method="get" class="row g-2" id="filterForm">
+            <div class="col-md-2">
+                <label class="form-label">Тип</label>
+                <select name="type" class="form-select form-select-sm filter-select">
+                    <option value="">Все</option>
+                    <option value="ban" {% if selected_type == 'ban' %}selected{% endif %}>Бан</option>
+                    <option value="mute" {% if selected_type == 'mute' %}selected{% endif %}>Мут</option>
+                    <option value="gag" {% if selected_type == 'gag' %}selected{% endif %}>Гаг</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Сервер</label>
+                <select name="server" class="form-select form-select-sm filter-select">
+                    <option value="">Все</option>
+                    {% for server in servers %}
+                    <option value="{{ server.id }}" {% if selected_server == server.id|stringformat:"s" %}selected{% endif %}>
+                        {{ server.name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Статус</label>
+                <select name="status" class="form-select form-select-sm filter-select">
+                    <option value="">Все</option>
+                    <option value="active" {% if selected_status == 'active' %}selected{% endif %}>Активные</option>
+                    <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Снятые</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <a href="{% url 'public_bans' %}" class="btn btn-secondary btn-sm">Сбросить</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.filter-select').forEach(select => {
+    select.addEventListener('change', function() {
+        document.getElementById('filterForm').submit();
+    });
+});
+</script>
+
+<!-- Таблица наказаний -->
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
+            <tr>
+                <th>Тип</th>
+                <th>Игрок</th>
+                <th>Сервер</th>
+                <th>Причина</th>
+                <th>Длительность</th>
+                <th>Выдано</th>
+                <th>Кто выдал</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for punishment in punishments %}
+            <tr {% if not punishment.is_active %}class="table-success"{% endif %}>
+                <td>
+                    {% if punishment.punishment_type == 'ban' %}
+                        <span class="badge bg-danger">БАН</span>
+                    {% elif punishment.punishment_type == 'mute' %}
+                        <span class="badge bg-warning text-dark">МУТ</span>
+                    {% elif punishment.punishment_type == 'gag' %}
+                        <span class="badge bg-info">ГАГ</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <strong>{{ punishment.target_name }}</strong><br>
+                    <small class="text-muted">{{ punishment.target_steam_id }}</small>
+                </td>
+                <td>{{ punishment.server.name }}</td>
+                <td>{{ punishment.reason }}</td>
+                <td>
+                    {% if punishment.duration == 0 %}
+                        <span class="badge bg-dark">Перманент</span>
+                    {% else %}
+                        {{ punishment.duration }} мин
+                        {% if punishment.get_time_remaining_minutes %}
+                            <br><small class="text-muted">Осталось: {{ punishment.get_time_remaining_minutes }} мин</small>
+                        {% endif %}
+                    {% endif %}
+                </td>
+                <td>{{ punishment.issued_at|date:"d.m.Y H:i" }}</td>
+                <td>
+                    {% if punishment.admin %}
+                        {{ punishment.admin.name }}
+                    {% else %}
+                        <span class="text-muted">Консоль</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if punishment.is_active %}
+                        <span class="badge bg-success">Активно</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Снято</span>
+                        <br><small class="text-muted">
+                            {% if punishment.unbanned_by %}
+                                {{ punishment.unbanned_by.name }}
+                            {% else %}
+                                Автоматически
+                            {% endif %}
+                        </small>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center text-muted">Нет наказаний</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="text-center mt-3">
+    <small class="text-muted">Всего наказаний: {{ punishments.count }}</small>
+</div>
+{% endblock %}

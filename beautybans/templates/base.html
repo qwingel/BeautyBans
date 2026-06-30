@@ -107,9 +107,20 @@
         <div class="container-fluid">
             <a class="navbar-brand ms-3" href="/">BeautyBans</a>
             <div class="navbar-nav ms-auto me-3">
+                {% if user.is_authenticated %}
                 <a class="nav-link {% if request.resolver_match.app_name == 'servers' %}active{% endif %}" href="{% url 'servers:list' %}">Серверы</a>
                 <a class="nav-link {% if request.resolver_match.app_name == 'admins' %}active{% endif %}" href="{% url 'admins:admin_panel' %}">Администрация</a>
                 <a class="nav-link {% if request.resolver_match.app_name == 'punishments' %}active{% endif %}" href="{% url 'punishments:list' %}">Наказания</a>
+                <a class="nav-link" href="{% url 'logout' %}">
+                    <i class="bi bi-box-arrow-right"></i> Выход
+                </a>
+                {% else %}
+                <a class="nav-link {% if request.resolver_match.url_name == 'public_bans' %}active{% endif %}" href="{% url 'public_bans' %}">Наказания</a>
+                <a class="nav-link {% if request.resolver_match.url_name == 'public_admins' %}active{% endif %}" href="{% url 'public_admins' %}">Администрация</a>
+                <a class="nav-link" href="{% url 'login' %}">
+                    <i class="bi bi-box-arrow-in-right"></i> Вход
+                </a>
+                {% endif %}
             </div>
         </div>
     </nav>

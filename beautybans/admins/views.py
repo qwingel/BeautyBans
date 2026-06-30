@@ -1,9 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
 from .models import Admin, AdminGroup, AdminServer
 from .forms import AdminForm, AdminGroupForm, AdminServerForm
 from servers.models import Server
 
 
+@login_required
 def admin_panel(request):
     admins = Admin.objects.all().order_by('-created_at')
     groups = AdminGroup.objects.all().order_by('name')
@@ -33,11 +35,13 @@ def admin_panel(request):
     return render(request, 'admins/admin_panel.html', context)
 
 
+@login_required
 def admins_list(request):
     admins = Admin.objects.all().order_by('-created_at')
     return render(request, 'admins/admins_list.html', {'admins': admins})
 
 
+@login_required
 def admin_add(request):
     if request.method == 'POST':
         form = AdminForm(request.POST)
@@ -49,6 +53,7 @@ def admin_add(request):
     return render(request, 'admins/admin_form.html', {'form': form, 'action': 'Добавить'})
 
 
+@login_required
 def admin_edit(request, pk):
     admin = get_object_or_404(Admin, pk=pk)
     if request.method == 'POST':
@@ -61,6 +66,7 @@ def admin_edit(request, pk):
     return render(request, 'admins/admin_form.html', {'form': form, 'action': 'Редактировать'})
 
 
+@login_required
 def admin_delete(request, pk):
     admin = get_object_or_404(Admin, pk=pk)
     if request.method == 'POST':
@@ -69,11 +75,13 @@ def admin_delete(request, pk):
     return render(request, 'admins/admin_delete.html', {'admin': admin})
 
 
+@login_required
 def groups_list(request):
     groups = AdminGroup.objects.all().order_by('name')
     return render(request, 'admins/groups_list.html', {'groups': groups})
 
 
+@login_required
 def group_add(request):
     if request.method == 'POST':
         form = AdminGroupForm(request.POST)
@@ -85,6 +93,7 @@ def group_add(request):
     return render(request, 'admins/group_form.html', {'form': form, 'action': 'Добавить'})
 
 
+@login_required
 def group_edit(request, pk):
     group = get_object_or_404(AdminGroup, pk=pk)
     if request.method == 'POST':
@@ -97,6 +106,7 @@ def group_edit(request, pk):
     return render(request, 'admins/group_form.html', {'form': form, 'action': 'Редактировать'})
 
 
+@login_required
 def group_delete(request, pk):
     group = get_object_or_404(AdminGroup, pk=pk)
     if request.method == 'POST':
@@ -105,6 +115,7 @@ def group_delete(request, pk):
     return render(request, 'admins/group_delete.html', {'group': group})
 
 
+@login_required
 def permissions_list(request):
     from servers.models import Server
 
@@ -132,6 +143,7 @@ def permissions_list(request):
     return render(request, 'admins/permissions_list.html', context)
 
 
+@login_required
 def permission_add(request):
     import json
 
@@ -152,6 +164,7 @@ def permission_add(request):
     })
 
 
+@login_required
 def permission_edit(request, pk):
     import json
 
@@ -173,6 +186,7 @@ def permission_edit(request, pk):
     })
 
 
+@login_required
 def permission_delete(request, pk):
     permission = get_object_or_404(AdminServer, pk=pk)
     if request.method == 'POST':
