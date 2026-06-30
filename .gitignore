@@ -1,6 +1,5 @@
 # Environment
 .env
-.gitignore
 
 # Python
 __pycache__/
@@ -24,7 +23,6 @@ beautybans/media/
 .idea/
 *.swp
 *.swo
-
 
 # Temp
 *.tmp
