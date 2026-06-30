@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,12 +21,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-a4qez$en8pc_#j)c4c*gl4c^38kop+1#oixvf%-!=e!86+8561'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-a4qez$en8pc_#j)c4c*gl4c^38kop+1#oixvf%-!=e!86+8561')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 
 # Application definition
@@ -79,8 +80,12 @@ WSGI_APPLICATION = 'beautybans.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.environ.get('POSTGRES_DB', 'beautybans'),
+        'USER': os.environ.get('POSTGRES_USER', 'beautybans_user'),
+        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'BeautyBans2026!'),
+        'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
+        'PORT': os.environ.get('POSTGRES_PORT', '5433'),
     }
 }
 
@@ -119,9 +124,11 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-STATICFILES_DIR = [BASE_DIR / 'static']
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field

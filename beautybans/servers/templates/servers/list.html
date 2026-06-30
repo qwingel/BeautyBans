@@ -22,15 +22,17 @@
         </thead>
         <tbody>
             {% for server in servers %}
-            <tr>
+            <tr class="clickable-row" data-server-id="{{ server.id }}">
                 <td>{{ server.name }}</td>
                 <td>{{ server.ip }}:{{ server.port }}</td>
                 <td>{{ server.get_game_type_display }}</td>
                 <td>
-                    {% if server.is_active %}
-                    <span class="badge bg-success">Активен</span>
+                    {% if not server.is_active %}
+                        <span class="badge bg-secondary">Неактивен</span>
+                    {% elif not server.is_verified %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-clock-fill"></i> Ожидание</span>
                     {% else %}
-                    <span class="badge bg-secondary">Неактивен</span>
+                        <span class="badge bg-success"><i class="bi bi-check-circle-fill"></i> Активен</span>
                     {% endif %}
                 </td>
                 <td>
@@ -42,10 +44,96 @@
                     </a>
                 </td>
             </tr>
+            <tr>
+                <td colspan="5" class="p-0">
+                    <div class="collapse" id="details-{{ server.id }}">
+                        <div class="punishment-details">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <strong>RCON пароль:</strong> {{ server.rcon_password }}<br>
+                                    <strong>Дата создания:</strong> {{ server.created_at|date:"d.m.Y H:i" }}
+                                </div>
+                                <div class="col-md-6">
+                                    <strong>Токен сервера:</strong>
+                                    <span id="token-hidden-{{ server.id }}" style="letter-spacing: 2px;">••••••••••••••••••••••••••••••••••••</span>
+                                    <span id="token-visible-{{ server.id }}" style="display: none; font-family: monospace;">{{ server.token }}</span>
+                                    <span data-token="{{ server.token }}" style="display: none;"></span>
+                                    <i class="bi bi-eye-fill action-icon ms-2" id="toggle-token-{{ server.id }}" style="cursor: pointer;" title="Показать/скрыть"></i>
+                                    <i class="bi bi-clipboard action-icon ms-1" id="copy-token-{{ server.id }}" data-token="{{ server.token }}" style="cursor: pointer;" title="Копировать токен"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
+
+<script>
+// Раскрытие деталей сервера
+document.querySelectorAll('.clickable-row').forEach(row => {
+    row.addEventListener('click', function(e) {
+        // Игнорировать клик по ссылкам
+        if (e.target.tagName === 'A' || e.target.tagName === 'I' || e.target.closest('a')) {
+            return;
+        }
+
+        const serverId = this.dataset.serverId;
+        const detailsRow = document.getElementById('details-' + serverId);
+        const bsCollapse = new bootstrap.Collapse(detailsRow, {
+            toggle: true
+        });
+    });
+});
+
+// Переключение видимости токена
+document.querySelectorAll('[id^="toggle-token-"]').forEach(icon => {
+    icon.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const serverId = this.id.replace('toggle-token-', '');
+        const hidden = document.getElementById('token-hidden-' + serverId);
+        const visible = document.getElementById('token-visible-' + serverId);
+
+        if (hidden.style.display === 'none') {
+            hidden.style.display = 'inline';
+            visible.style.display = 'none';
+            this.classList.remove('bi-eye-slash-fill');
+            this.classList.add('bi-eye-fill');
+        } else {
+            hidden.style.display = 'none';
+            visible.style.display = 'inline';
+            this.classList.remove('bi-eye-fill');
+            this.classList.add('bi-eye-slash-fill');
+        }
+    });
+});
+
+// Копирование токена
+document.querySelectorAll('[id^="copy-token-"]').forEach(icon => {
+    icon.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const token = this.dataset.token;
+
+        navigator.clipboard.writeText(token).then(() => {
+            // Визуальный feedback - меняем иконку на галочку
+            this.classList.remove('bi-clipboard');
+            this.classList.add('bi-clipboard-check');
+            this.style.color = 'green';
+
+            setTimeout(() => {
+                this.classList.remove('bi-clipboard-check');
+                this.classList.add('bi-clipboard');
+                this.style.color = '';
+            }, 1500);
+        }).catch(err => {
+            console.error('Ошибка копирования:', err);
+            alert('Не удалось скопировать токен');
+        });
+    });
+});
+</script>
 {% else %}
 <div class="alert alert-info">
     Серверов пока нет. <a href="{% url 'servers:add' %}">Добавить первый сервер</a>

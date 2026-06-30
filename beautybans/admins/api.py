@@ -3,6 +3,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from .models import Admin, AdminServer
 from servers.models import Server
+from servers.utils import verify_server_if_needed
 import json
 
 
@@ -36,6 +37,8 @@ def check_admin(request):
         # Проверка токена сервера
         try:
             server = Server.objects.get(token=server_token, is_active=True)
+            # Автоверификация при первом запросе
+            verify_server_if_needed(server)
         except Server.DoesNotExist:
             return JsonResponse({'error': 'Invalid server token'}, status=403)
 

@@ -11,10 +11,11 @@ class Server(models.Model):
     name = models.CharField(max_length=64)
     ip = models.GenericIPAddressField()
     port = models.IntegerField(default=27015)
-    rcon_password = models.CharField(max_length=128)
+    rcon_password = models.CharField(max_length=128, blank=True, default='')
     game_type = models.CharField(max_length=8, choices=GAME_CHOICES, default='cs16')
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     is_active = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False, help_text='Верифицирован через API плагина')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
