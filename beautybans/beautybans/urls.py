@@ -18,6 +18,7 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views, logout
 from django.urls import include, path
 from django.shortcuts import redirect
+from django.conf import settings
 from .public_views import public_bans, public_admins
 
 def logout_view(request):
@@ -30,14 +31,30 @@ def home_redirect(request):
     else:
         return redirect('public_bans')
 
-urlpatterns = [
+_urlpatterns = [
     path('', home_redirect, name='home'),
-    path('bans/', public_bans, name='public_bans'),
-    path('admin-list/', public_admins, name='public_admins'),
-    path('login/', auth_views.LoginView.as_view(), name='login'),
-    path('logout/', logout_view, name='logout'),
+
+    # Публичные страницы
+    path('banlist/', public_bans, name='public_bans'),
+    path('admins/', public_admins, name='public_admins'),
+
+    # Авторизация
+    path('adminpanel/login/', auth_views.LoginView.as_view(), name='login'),
+    path('adminpanel/logout/', logout_view, name='logout'),
+
+    # Django admin (для разработки)
     path('admin/', admin.site.urls),
-    path('servers/', include('servers.urls')),
-    path('admins/', include('admins.urls')),
-    path('punishments/', include('punishments.urls')),
+
+    # Админ-панель
+    path('adminpanel/servers/', include('servers.urls')),
+    path('adminpanel/administration/', include('admins.urls')),
+    path('adminpanel/punishments/', include('punishments.urls')),
 ]
+
+# Поддержка URL_PREFIX для установки в подкаталог
+if settings.URL_PREFIX:
+    urlpatterns = [
+        path(settings.URL_PREFIX.lstrip('/') + '/', include(_urlpatterns)),
+    ]
+else:
+    urlpatterns = _urlpatterns

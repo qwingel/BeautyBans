@@ -12,9 +12,18 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Загрузка переменных окружения из .env файла
+load_dotenv(BASE_DIR.parent / '.env')
+
+# URL prefix для установки в подкаталог (например /beautybans/)
+URL_PREFIX = os.environ.get('URL_PREFIX', '').rstrip('/')
+if URL_PREFIX and not URL_PREFIX.startswith('/'):
+    URL_PREFIX = '/' + URL_PREFIX
 
 
 # Quick-start development settings - unsuitable for production
@@ -124,10 +133,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = '/static/'
+STATIC_URL = f'{URL_PREFIX}/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-MEDIA_URL = '/media/'
+MEDIA_URL = f'{URL_PREFIX}/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Default primary key field type
@@ -136,5 +145,5 @@ MEDIA_ROOT = BASE_DIR / 'media'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Login settings
-LOGIN_URL = '/login/'
-LOGIN_REDIRECT_URL = '/servers/'
+LOGIN_URL = f'{URL_PREFIX}/adminpanel/login/'
+LOGIN_REDIRECT_URL = f'{URL_PREFIX}/adminpanel/servers/'
