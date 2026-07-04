@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.urls import reverse
 from .models import Admin, AdminGroup, AdminServer
 from .forms import AdminForm, AdminGroupForm, AdminServerForm
 from servers.models import Server
@@ -151,7 +152,7 @@ def permission_add(request):
         form = AdminServerForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('admins:admin_panel' + '?tab=permissions')
+            return redirect(reverse('admins:admin_panel') + '?tab=permissions')
     else:
         form = AdminServerForm()
 
@@ -173,7 +174,7 @@ def permission_edit(request, pk):
         form = AdminServerForm(request.POST, instance=permission)
         if form.is_valid():
             form.save()
-            return redirect('admins:admin_panel' + '?tab=permissions')
+            return redirect(reverse('admins:admin_panel') + '?tab=permissions')
     else:
         form = AdminServerForm(instance=permission)
 
