@@ -16,20 +16,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Копируем проект
 COPY beautybans/ /app/
 
-# Создаем пользователя для безопасности
-RUN useradd -m -u 1000 beautybans && chown -R beautybans:beautybans /app
-
-# Создаем директории для volumes и даем права
-RUN mkdir -p /app/staticfiles /app/media && \
-    chown -R beautybans:beautybans /app/staticfiles /app/media
-
-USER beautybans
-
 # Порт Django
 EXPOSE 8000
 
 # Entrypoint для миграций
-COPY --chown=beautybans:beautybans docker-entrypoint.sh /app/
+COPY docker-entrypoint.sh /app/
 RUN chmod +x /app/docker-entrypoint.sh
 
 ENTRYPOINT ["/app/docker-entrypoint.sh"]
