@@ -18,6 +18,11 @@ COPY beautybans/ /app/
 
 # Создаем пользователя для безопасности
 RUN useradd -m -u 1000 beautybans && chown -R beautybans:beautybans /app
+
+# Создаем директории для volumes и даем права
+RUN mkdir -p /app/staticfiles /app/media && \
+    chown -R beautybans:beautybans /app/staticfiles /app/media
+
 USER beautybans
 
 # Порт Django
