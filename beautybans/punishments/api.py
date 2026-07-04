@@ -367,11 +367,6 @@ def remove_punishment(request):
 
         return JsonResponse(response)
 
-        return JsonResponse({
-            'success': True,
-            'removed_count': removed_count
-        })
-
     except json.JSONDecodeError:
         return JsonResponse({'error': 'Invalid JSON'}, status=400)
     except Exception as e:

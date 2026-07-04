@@ -88,7 +88,7 @@ def group_add(request):
         form = AdminGroupForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('admins:admin_panel') + '?tab=groups'
+            return redirect(reverse('admins:admin_panel') + '?tab=groups')
     else:
         form = AdminGroupForm()
     return render(request, 'admins/group_form.html', {'form': form, 'action': 'Добавить'})
@@ -101,7 +101,7 @@ def group_edit(request, pk):
         form = AdminGroupForm(request.POST, instance=group)
         if form.is_valid():
             form.save()
-            return redirect('admins:admin_panel') + '?tab=groups'
+            return redirect(reverse('admins:admin_panel') + '?tab=groups')
     else:
         form = AdminGroupForm(instance=group)
     return render(request, 'admins/group_form.html', {'form': form, 'action': 'Редактировать'})
@@ -112,7 +112,7 @@ def group_delete(request, pk):
     group = get_object_or_404(AdminGroup, pk=pk)
     if request.method == 'POST':
         group.delete()
-        return redirect('admins:admin_panel') + '?tab=groups'
+        return redirect(reverse('admins:admin_panel') + '?tab=groups')
     return render(request, 'admins/group_delete.html', {'group': group})
 
 
@@ -192,5 +192,5 @@ def permission_delete(request, pk):
     permission = get_object_or_404(AdminServer, pk=pk)
     if request.method == 'POST':
         permission.delete()
-        return redirect('admins:admin_panel') + '?tab=permissions'
+        return redirect(reverse('admins:admin_panel') + '?tab=permissions')
     return render(request, 'admins/permission_delete.html', {'permission': permission})
