@@ -1,21 +1,20 @@
 # BeautyBans API Documentation
 
-Документация API для разработки плагинов под
+Документация API для разработки плагинов Counter-Strike 1.6 и CS2
 
 ## 🔑 Аутентификация
 
 Все API запросы требуют **server_token** (UUID) в теле запроса.
 
 **Получение токена:**
-1. Добавить сервер через веб-панель
-2. Клик по серверу => скопировать токен📋
-
+1. Добавить сервер через веб-панель (`/adminpanel/servers/`)
+2. Клик по серверу → скопировать токен
 
 ## 📡 Endpoints
 
 ### 1. Проверка прав администратора
 
-**POST** `/admins/api/check/`
+**POST** `/adminpanel/administration/api/check/`
 
 Проверяет права игрока на сервере.
 
@@ -55,9 +54,9 @@
 
 ### 2. Проверка наказаний игрока
 
-**POST** `/punishments/api/check/`
+**POST** `/adminpanel/punishments/api/check/`
 
-Проверяет активные баны/муты/гаги игрока
+Проверяет активные баны/муты/гаги игрока при подключении
 
 **Request:**
 ```json
@@ -96,7 +95,7 @@
 
 ### 3. Выдача наказания
 
-**POST** `/punishments/api/add/`
+**POST** `/adminpanel/punishments/api/add/`
 
 Выдаёт бан/мут/гаг игроку.
 
@@ -156,7 +155,7 @@
 
 ### 4. Снятие наказания
 
-**POST** `/punishments/api/remove/`
+**POST** `/adminpanel/punishments/api/remove/`
 
 Снимает активные наказания с игрока.
 
@@ -222,7 +221,7 @@
 
 ### 5. Heartbeat (опционально)
 
-**POST** `/servers/api/heartbeat/`
+**POST** `/adminpanel/servers/api/heartbeat/`
 
 Явная верификация сервера (альтернатива автоверификации).
 

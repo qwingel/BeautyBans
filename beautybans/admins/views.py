@@ -151,7 +151,7 @@ def permission_add(request):
         form = AdminServerForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('admins:admin_panel') + '?tab=permissions'
+            return redirect('admins:admin_panel' + '?tab=permissions')
     else:
         form = AdminServerForm()
 
@@ -173,7 +173,7 @@ def permission_edit(request, pk):
         form = AdminServerForm(request.POST, instance=permission)
         if form.is_valid():
             form.save()
-            return redirect('admins:admin_panel') + '?tab=permissions'
+            return redirect('admins:admin_panel' + '?tab=permissions')
     else:
         form = AdminServerForm(instance=permission)
 
