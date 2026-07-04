@@ -32,9 +32,9 @@ nano .env
 **Обязательно измените:**
 ```env
 DEBUG=False
-SECRET_KEY=ваш_случайный_ключ
-POSTGRES_PASSWORD=пароль_для_БД
-ALLOWED_HOSTS=your-domain.com,123.45.67.89
+SECRET_KEY=ваш_ключ
+POSTGRES_PASSWORD=сильный_пароль
+ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.com
 URL_PREFIX=
 ```
 
@@ -43,18 +43,7 @@ URL_PREFIX=
 python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
----
 ### Настройка URL
-### Вариант 1: Корневой домен
-
-**URL структура:**
-- `http://your-domain.com/` — главная
-- `http://your-domain.com/banlist/` - банлист
-- `http://your-domain.com/admins/` — список админов
-- `http://your-domain.com/adminpanel/` — вход в админ-панель
-
-### Вариант 2: Подкаталог
-**Настройка `.env`:**
 ```env
 URL_PREFIX=/beautybans
 ```
@@ -77,13 +66,13 @@ location /beautybans/ {
 
 #### 3. Запустить
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 
 #### 4. Создать администратора
 ```bash
-docker-compose exec web python manage.py createsuperuser
+docker compose exec web python manage.py createsuperuser
 ```
 
 
@@ -96,30 +85,30 @@ docker-compose exec web python manage.py createsuperuser
 
 **Запустить:**
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 
 **Остановить:**
 ```bash
-docker-compose down
+docker compose down
 ```
 
 **Посмотреть логи:**
 ```bash
-docker-compose logs -f web
-docker-compose logs -f db
+docker compose logs -f web
+docker compose logs -f db
 ```
 
 **Перезапустить:**
 ```bash
-docker-compose restart
+docker compose restart
 ```
 
 **Обновить до новой версии:**
 ```bash
 git pull
-docker-compose up -d --build
-docker-compose exec web python manage.py migrate
+docker compose up -d --build
+docker compose exec web python manage.py migrate
 ```
 
 ## 📡 API для плагинов
