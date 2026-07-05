@@ -3,18 +3,19 @@
 {% block title %}Наказания - BeautyBans{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h1>Наказания</h1>
+<div class="page-header">
+    <h1 class="page-title">Наказания</h1>
     <a href="{% url 'punishments:add' %}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Добавить наказание
+        <i class="bi bi-plus-circle"></i>
+        Добавить наказание
     </a>
 </div>
 
 <!-- Фильтры -->
-<div class="card mb-3">
+<div class="card">
     <div class="card-body">
-        <form method="get" class="row g-2" id="filterForm">
-            <div class="col-md-2">
+        <form method="get" id="filterForm" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; align-items: end;">
+            <div>
                 <label class="form-label">Тип</label>
                 <select name="type" class="form-select form-select-sm filter-select">
                     <option value="">Все</option>
@@ -23,7 +24,7 @@
                     <option value="gag" {% if selected_type == 'gag' %}selected{% endif %}>Гаг</option>
                 </select>
             </div>
-            <div class="col-md-3">
+            <div>
                 <label class="form-label">Сервер</label>
                 <select name="server" class="form-select form-select-sm filter-select">
                     <option value="">Все</option>
@@ -34,7 +35,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-2">
+            <div>
                 <label class="form-label">Статус</label>
                 <select name="status" class="form-select form-select-sm filter-select">
                     <option value="">Все</option>
@@ -42,8 +43,8 @@
                     <option value="inactive" {% if selected_status == 'inactive' %}selected{% endif %}>Снятые</option>
                 </select>
             </div>
-            <div class="col-md-2 d-flex align-items-end">
-                <a href="{% url 'punishments:list' %}" class="btn btn-secondary btn-sm">Сбросить</a>
+            <div>
+                <a href="{% url 'punishments:list' %}" class="btn btn-secondary btn-sm" style="width: 100%;">Сбросить</a>
             </div>
         </form>
     </div>
@@ -57,115 +58,141 @@ document.querySelectorAll('.filter-select').forEach(select => {
 });
 </script>
 
-<!-- Таблица наказаний -->
 {% if punishments %}
-<div class="table-responsive">
-    <table class="table table-striped table-hover">
-        <thead class="table-dark">
+<div class="table-wrapper">
+    <table>
+        <thead>
             <tr>
                 <th>Тип</th>
                 <th>Игрок</th>
                 <th>Сервер</th>
-                <th>Причина</th>
                 <th>Длительность</th>
                 <th>Выдано</th>
-                <th>Кто выдал</th>
                 <th>Статус</th>
-                <th width="120">Действия</th>
+                <th width="140">Действия</th>
             </tr>
         </thead>
         <tbody>
             {% for punishment in punishments %}
-            <tr {% if not punishment.is_active %}class="table-success"{% endif %}>
+            <tr class="clickable" data-punishment-id="{{ punishment.pk }}">
                 <td>
                     {% if punishment.punishment_type == 'ban' %}
-                        <span class="badge bg-danger">БАН</span>
+                        <span class="badge badge-danger">БАН</span>
                     {% elif punishment.punishment_type == 'mute' %}
-                        <span class="badge bg-warning text-dark">МУТ</span>
-                    {% elif punishment.punishment_type == 'gag' %}
-                        <span class="badge bg-info">ГАГ</span>
+                        <span class="badge badge-warning">МУТ</span>
+                    {% else %}
+                        <span class="badge badge-info">ГАГ</span>
                     {% endif %}
                 </td>
                 <td>
-                    <strong>{{ punishment.target_name }}</strong><br>
-                    <small class="text-muted">{{ punishment.target_steam_id }}</small>
-                    {% if punishment.target_ip %}
-                        <br><small class="text-muted">{{ punishment.target_ip }}
-                        {% if punishment.ban_subnet %}<span class="badge bg-warning text-dark" style="font-size: 0.6rem;">Подсеть</span>{% endif %}
-                        </small>
-                    {% endif %}
+                    <strong>{{ punishment.target_name }}</strong>
                 </td>
                 <td>{{ punishment.server.name }}</td>
-                <td>{{ punishment.reason }}</td>
                 <td>
                     {% if punishment.duration == 0 %}
-                        <span class="badge bg-dark">Перманент</span>
+                        <span class="badge badge-secondary">Перманент</span>
                     {% else %}
                         {{ punishment.duration }} мин
-                        {% if punishment.is_active and punishment.get_time_remaining_minutes %}
-                            <br><small class="text-muted">Осталось: {{ punishment.get_time_remaining_minutes }} мин</small>
-                        {% endif %}
                     {% endif %}
                 </td>
-                <td>{{ punishment.issued_at|date:"d.m.Y H:i" }}</td>
-                <td>
-                    {% if punishment.admin %}
-                        {{ punishment.admin.name }}
-                    {% else %}
-                        <span class="text-muted">Консоль</span>
-                    {% endif %}
-                </td>
+                <td class="text-sm text-muted">{{ punishment.issued_at|date:"d.m.Y H:i" }}</td>
                 <td>
                     {% if punishment.is_active %}
-                        <span class="badge bg-success">Активно</span>
+                        <span class="badge badge-danger">Активно</span>
                     {% else %}
-                        <span class="badge bg-secondary">Снято</span>
-                        <br><small class="text-muted">
-                            {% if punishment.unbanned_by %}
-                                {{ punishment.unbanned_by.name }}
-                            {% else %}
-                                Автоматически
-                            {% endif %}
-                        </small>
-                        {% if punishment.unban_reason %}
-                            <br><small class="text-muted" title="{{ punishment.unban_reason }}">
-                                <i class="bi bi-info-circle"></i> {{ punishment.unban_reason|truncatewords:3 }}
-                            </small>
-                        {% endif %}
+                        <span class="badge badge-success">Снято</span>
                     {% endif %}
                 </td>
                 <td>
-                    <div class="d-flex gap-1">
+                    <div style="display: flex; gap: 0.375rem;">
                         {% if punishment.is_active %}
-                        <a href="{% url 'punishments:unban' punishment.pk %}" class="btn btn-sm btn-success" title="Снять наказание">
+                        <a href="{% url 'punishments:unban' punishment.pk %}" class="btn btn-success btn-icon btn-sm" title="Снять" onclick="event.stopPropagation()">
                             <i class="bi bi-check-circle"></i>
                         </a>
                         {% endif %}
-                        <a href="{% url 'punishments:edit' punishment.pk %}" class="btn btn-sm btn-warning" title="Редактировать">
+                        <a href="{% url 'punishments:edit' punishment.pk %}" class="btn btn-warning btn-icon btn-sm" title="Редактировать" onclick="event.stopPropagation()">
                             <i class="bi bi-pencil-fill"></i>
                         </a>
-                        <a href="{% url 'punishments:delete' punishment.pk %}" class="btn btn-sm btn-danger" title="Удалить">
+                        <a href="{% url 'punishments:delete' punishment.pk %}" class="btn btn-danger btn-icon btn-sm" title="Удалить" onclick="event.stopPropagation()">
                             <i class="bi bi-trash-fill"></i>
                         </a>
                     </div>
                 </td>
             </tr>
-            {% empty %}
-            <tr>
-                <td colspan="9" class="text-center text-muted">Нет наказаний</td>
+            <tr class="details-row collapse" id="details-{{ punishment.pk }}">
+                <td colspan="7">
+                    <div class="details-content">
+                        <div class="details-item">
+                            <div class="details-label">Steam ID</div>
+                            <div class="details-value mono">{{ punishment.target_steam_id }}</div>
+                        </div>
+                        <div class="details-item">
+                            <div class="details-label">IP адрес</div>
+                            <div class="details-value">
+                                {% if punishment.target_ip %}
+                                    {{ punishment.target_ip }}
+                                    {% if punishment.ban_subnet %}
+                                        <span class="badge badge-warning text-xs">Подсеть /24</span>
+                                    {% endif %}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="details-item">
+                            <div class="details-label">Администратор</div>
+                            <div class="details-value">{{ punishment.admin.name|default:"Консоль" }}</div>
+                        </div>
+                        <div class="details-item">
+                            <div class="details-label">Причина</div>
+                            <div class="details-value">{{ punishment.reason }}</div>
+                        </div>
+                        {% if not punishment.is_active %}
+                        <div class="details-item">
+                            <div class="details-label">Снято</div>
+                            <div class="details-value">
+                                {% if punishment.unbanned_by %}
+                                    {{ punishment.unbanned_by.name }}
+                                {% else %}
+                                    Автоматически
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="details-item">
+                            <div class="details-label">Причина снятия</div>
+                            <div class="details-value">{{ punishment.unban_reason|default:"—" }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 </div>
 
-<div class="text-center mt-3">
-    <small class="text-muted">Всего наказаний: {{ punishments.count }}</small>
+<div style="text-align: center; margin-top: 1rem;">
+    <span class="text-muted text-sm">Всего наказаний: {{ punishments.count }}</span>
 </div>
 {% else %}
-<div class="alert alert-info">
-    Наказаний пока нет. <a href="{% url 'punishments:add' %}">Добавить первое наказание</a>
+<div class="card">
+    <div class="card-body">
+        <p style="margin: 0; color: var(--bb-text-muted);">
+            Наказаний пока нет. <a href="{% url 'punishments:add' %}" style="color: var(--bb-primary);">Добавить первое наказание</a>
+        </p>
+    </div>
 </div>
 {% endif %}
 
+<script>
+document.querySelectorAll('tr.clickable').forEach(row => {
+    row.addEventListener('click', function(e) {
+        if (e.target.closest('a') || e.target.closest('button')) return;
+
+        const punishmentId = this.dataset.punishmentId;
+        const detailsRow = document.getElementById('details-' + punishmentId);
+        const collapse = new bootstrap.Collapse(detailsRow, { toggle: true });
+    });
+});
+</script>
 {% endblock %}
