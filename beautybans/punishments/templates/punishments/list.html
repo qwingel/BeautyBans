@@ -66,6 +66,7 @@ document.querySelectorAll('.filter-select').forEach(select => {
                 <th>Тип</th>
                 <th>Игрок</th>
                 <th>Сервер</th>
+                <th>Причина</th>
                 <th>Длительность</th>
                 <th>Выдано</th>
                 <th>Статус</th>
@@ -74,7 +75,7 @@ document.querySelectorAll('.filter-select').forEach(select => {
         </thead>
         <tbody>
             {% for punishment in punishments %}
-            <tr class="clickable" data-punishment-id="{{ punishment.pk }}">
+            <tr class="clickable {% if not punishment.is_active %}row-unbanned{% endif %}" data-punishment-id="{{ punishment.pk }}">
                 <td>
                     {% if punishment.punishment_type == 'ban' %}
                         <span class="badge badge-danger">БАН</span>
@@ -88,6 +89,7 @@ document.querySelectorAll('.filter-select').forEach(select => {
                     <strong>{{ punishment.target_name }}</strong>
                 </td>
                 <td>{{ punishment.server.name }}</td>
+                <td>{{ punishment.reason|truncatewords:8 }}</td>
                 <td>
                     {% if punishment.duration == 0 %}
                         <span class="badge badge-secondary">Перманент</span>
@@ -120,7 +122,7 @@ document.querySelectorAll('.filter-select').forEach(select => {
                 </td>
             </tr>
             <tr class="details-row collapse" id="details-{{ punishment.pk }}">
-                <td colspan="7">
+                <td colspan="8">
                     <div class="details-content">
                         <div class="details-item">
                             <div class="details-label">Steam ID</div>
