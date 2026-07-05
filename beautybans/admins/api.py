@@ -32,7 +32,7 @@ def check_admin(request):
         steam_id = data.get('steam_id')
 
         if not server_token or not steam_id:
-            return JsonResponse({'error': 'Missing server_token or steam_id'}, status=400)
+            return JsonResponse({'error': 'Missing server_token or steam_id'}, status=400, json_dumps_params={'ensure_ascii': False})
 
         # Проверка токена сервера
         try:
@@ -40,7 +40,7 @@ def check_admin(request):
             # Автоверификация при первом запросе
             verify_server_if_needed(server)
         except Server.DoesNotExist:
-            return JsonResponse({'error': 'Invalid server token'}, status=403)
+            return JsonResponse({'error': 'Invalid server token'}, status=403, json_dumps_params={'ensure_ascii': False})
 
         # Поиск админа
         try:
@@ -51,7 +51,7 @@ def check_admin(request):
                 'flags': '',
                 'immunity': 0,
                 'group': None
-            })
+            }, json_dumps_params={'ensure_ascii': False})
 
         # Поиск прав на этом сервере
         try:
@@ -65,7 +65,7 @@ def check_admin(request):
                 'flags': permission.get_effective_flags(),
                 'immunity': permission.get_effective_immunity(),
                 'group': permission.group.name if permission.group else None
-            })
+            }, json_dumps_params={'ensure_ascii': False})
 
         except AdminServer.DoesNotExist:
             # Админ существует, но нет прав на этом сервере
@@ -74,9 +74,9 @@ def check_admin(request):
                 'flags': '',
                 'immunity': 0,
                 'group': None
-            })
+            }, json_dumps_params={'ensure_ascii': False})
 
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        return JsonResponse({'error': 'Invalid JSON'}, status=400, json_dumps_params={'ensure_ascii': False})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})

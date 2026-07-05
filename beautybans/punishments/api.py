@@ -39,7 +39,7 @@ def check_player(request):
         player_ip = data.get('player_ip')
 
         if not server_token or not steam_id:
-            return JsonResponse({'error': 'Missing server_token or steam_id'}, status=400)
+            return JsonResponse({'error': 'Missing server_token or steam_id'}, status=400, json_dumps_params={'ensure_ascii': False})
 
         # Проверка токена сервера
         try:
@@ -47,7 +47,7 @@ def check_player(request):
             # Автоверификация при первом запросе
             verify_server_if_needed(server)
         except Server.DoesNotExist:
-            return JsonResponse({'error': 'Invalid server token'}, status=403)
+            return JsonResponse({'error': 'Invalid server token'}, status=403, json_dumps_params={'ensure_ascii': False})
 
         # Получаем активные наказания
         punishments = Punishment.objects.filter(
@@ -108,12 +108,12 @@ def check_player(request):
         return JsonResponse({
             'banned': has_ban,
             'punishments': punishments_list
-        })
+        }, json_dumps_params={'ensure_ascii': False})
 
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        return JsonResponse({'error': 'Invalid JSON'}, status=400, json_dumps_params={'ensure_ascii': False})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
 
 
 @csrf_exempt
@@ -154,7 +154,7 @@ def add_punishment(request):
 
         # Валидация обязательных полей
         if not all([server_token, target_steam_id, target_name, punishment_type, reason]):
-            return JsonResponse({'error': 'Missing required fields'}, status=400)
+            return JsonResponse({'error': 'Missing required fields'}, status=400, json_dumps_params={'ensure_ascii': False})
 
         # Проверка токена сервера
         try:
@@ -162,12 +162,12 @@ def add_punishment(request):
             # Автоверификация при первом запросе
             verify_server_if_needed(server)
         except Server.DoesNotExist:
-            return JsonResponse({'error': 'Invalid server token'}, status=403)
+            return JsonResponse({'error': 'Invalid server token'}, status=403, json_dumps_params={'ensure_ascii': False})
 
         # Проверка типа наказания
         valid_types = ['ban', 'mute', 'gag']
         if punishment_type not in valid_types:
-            return JsonResponse({'error': f'Invalid punishment_type. Must be one of: {valid_types}'}, status=400)
+            return JsonResponse({'error': f'Invalid punishment_type. Must be one of: {valid_types}'}, status=400, json_dumps_params={'ensure_ascii': False})
 
         # Поиск админа (если указан)
         admin = None
@@ -184,7 +184,7 @@ def add_punishment(request):
                 except AdminServer.DoesNotExist:
                     admin_immunity = 0
             except Admin.DoesNotExist:
-                return JsonResponse({'error': 'Admin not found or inactive'}, status=404)
+                return JsonResponse({'error': 'Admin not found or inactive'}, status=404, json_dumps_params={'ensure_ascii': False})
 
         # Проверка иммунитета цели (если цель тоже админ)
         try:
@@ -202,7 +202,7 @@ def add_punishment(request):
                         'error': 'Cannot punish this player - insufficient immunity',
                         'admin_immunity': admin_immunity,
                         'target_immunity': target_immunity
-                    }, status=403)
+                    }, status=403, json_dumps_params={'ensure_ascii': False})
             except AdminServer.DoesNotExist:
                 # Цель админ, но нет прав на этом сервере - можно наказывать
                 pass
@@ -226,12 +226,12 @@ def add_punishment(request):
         return JsonResponse({
             'success': True,
             'punishment_id': punishment.id
-        })
+        }, json_dumps_params={'ensure_ascii': False})
 
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        return JsonResponse({'error': 'Invalid JSON'}, status=400, json_dumps_params={'ensure_ascii': False})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
 
 
 @csrf_exempt
@@ -264,7 +264,7 @@ def remove_punishment(request):
 
         # Валидация
         if not all([server_token, target_steam_id]):
-            return JsonResponse({'error': 'Missing server_token or target_steam_id'}, status=400)
+            return JsonResponse({'error': 'Missing server_token or target_steam_id'}, status=400, json_dumps_params={'ensure_ascii': False})
 
         # Проверка токена сервера
         try:
@@ -272,7 +272,7 @@ def remove_punishment(request):
             # Автоверификация при первом запросе
             verify_server_if_needed(server)
         except Server.DoesNotExist:
-            return JsonResponse({'error': 'Invalid server token'}, status=403)
+            return JsonResponse({'error': 'Invalid server token'}, status=403, json_dumps_params={'ensure_ascii': False})
 
         # Поиск админа (если указан)
         admin = None
@@ -289,7 +289,7 @@ def remove_punishment(request):
                 except AdminServer.DoesNotExist:
                     admin_immunity = 0
             except Admin.DoesNotExist:
-                return JsonResponse({'error': 'Admin not found or inactive'}, status=404)
+                return JsonResponse({'error': 'Admin not found or inactive'}, status=404, json_dumps_params={'ensure_ascii': False})
 
         # Поиск активных наказаний
         punishments = Punishment.objects.filter(
@@ -363,11 +363,11 @@ def remove_punishment(request):
             return JsonResponse({
                 'error': 'Cannot remove any punishments - insufficient immunity',
                 'cannot_remove': cannot_remove
-            }, status=403)
+            }, status=403, json_dumps_params={'ensure_ascii': False})
 
-        return JsonResponse(response)
+        return JsonResponse(response, json_dumps_params={'ensure_ascii': False})
 
     except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+        return JsonResponse({'error': 'Invalid JSON'}, status=400, json_dumps_params={'ensure_ascii': False})
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=500)
+        return JsonResponse({'error': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
