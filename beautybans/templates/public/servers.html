@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}Серверы - BeautyBans{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Серверы</h1>
+</div>
+
+<div class="table-wrapper">
+    <table>
+        <thead>
+            <tr>
+                <th>Название</th>
+                <th>Адрес</th>
+                <th>Тип игры</th>
+                <th>Статус</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for server in servers %}
+            <tr>
+                <td><strong>{{ server.name }}</strong></td>
+                <td class="mono">{{ server.ip }}:{{ server.port }}</td>
+                <td>{{ server.get_game_type_display }}</td>
+                <td>
+                    {% if server.is_verified %}
+                        <span class="badge badge-success">
+                            <i class="bi bi-check-circle-fill"></i> Онлайн
+                        </span>
+                    {% else %}
+                        <span class="badge badge-warning">
+                            <i class="bi bi-clock-fill"></i> Ожидание
+                        </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; padding: 2rem; color: var(--bb-text-muted);">
+                    Нет серверов
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="text-align: center; margin-top: 1rem;">
+    <span class="text-muted text-sm">Всего серверов: {{ servers.count }}</span>
+</div>
+{% endblock %}

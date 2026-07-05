@@ -58,3 +58,13 @@ def public_admins(request):
         'selected_server': server_filter,
     }
     return render(request, 'public/admins.html', context)
+
+
+def public_servers(request):
+    """Публичная страница со списком серверов"""
+    servers = Server.objects.filter(is_active=True).order_by('name')
+
+    context = {
+        'servers': servers,
+    }
+    return render(request, 'public/servers.html', context)

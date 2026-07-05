@@ -19,7 +19,7 @@ from django.contrib.auth import views as auth_views, logout
 from django.urls import include, path
 from django.shortcuts import redirect
 from django.conf import settings
-from .public_views import public_bans, public_admins
+from .public_views import public_bans, public_admins, public_servers
 
 def logout_view(request):
     logout(request)
@@ -37,6 +37,7 @@ _urlpatterns = [
     # Публичные страницы
     path('banlist/', public_bans, name='public_bans'),
     path('admins/', public_admins, name='public_admins'),
+    path('servers/', public_servers, name='public_servers'),
 
     # Авторизация
     path('adminpanel/login/', auth_views.LoginView.as_view(), name='login'),

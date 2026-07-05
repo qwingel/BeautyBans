@@ -3,11 +3,16 @@ from .models import Punishment
 
 
 class PunishmentForm(forms.ModelForm):
+    punishment_type = forms.ChoiceField(
+        choices=[('', 'Выберите тип наказания')] + list(Punishment.PUNISHMENT_TYPES),
+        widget=forms.Select(attrs={'class': 'form-select'}),
+        label='Тип наказания'
+    )
+
     class Meta:
         model = Punishment
         fields = ['punishment_type', 'target_steam_id', 'target_name', 'target_ip', 'ban_subnet', 'reason', 'admin', 'server', 'duration']
         widgets = {
-            'punishment_type': forms.Select(attrs={'class': 'form-select'}),
             'target_steam_id': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'STEAM_0:1:123456'}),
             'target_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Имя игрока'}),
             'target_ip': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '127.0.0.1 (необязательно)'}),
@@ -18,7 +23,6 @@ class PunishmentForm(forms.ModelForm):
             'duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0 для перманента, минуты для временного'}),
         }
         labels = {
-            'punishment_type': 'Тип наказания',
             'target_steam_id': 'Steam ID игрока',
             'target_name': 'Имя игрока',
             'target_ip': 'IP адрес',
@@ -32,7 +36,6 @@ class PunishmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Устанавливаем пустой выбор вместо "-------"
-        self.fields['punishment_type'].empty_label = 'Выберите тип наказания'
         self.fields['admin'].empty_label = 'Консоль (без админа)'
         self.fields['server'].empty_label = 'Выберите сервер'
 
