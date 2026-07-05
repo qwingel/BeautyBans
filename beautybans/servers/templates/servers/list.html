@@ -116,23 +116,59 @@ document.querySelectorAll('[id^="copy-token-"]').forEach(icon => {
         e.stopPropagation();
         const token = this.dataset.token;
 
-        navigator.clipboard.writeText(token).then(() => {
-            // Визуальный feedback - меняем иконку на галочку
-            this.classList.remove('bi-clipboard');
-            this.classList.add('bi-clipboard-check');
-            this.style.color = 'green';
+        // Fallback для браузеров без поддержки clipboard API
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(token).then(() => {
+                // Визуальный feedback - меняем иконку на галочку
+                this.classList.remove('bi-clipboard');
+                this.classList.add('bi-clipboard-check');
+                this.style.color = 'green';
 
-            setTimeout(() => {
-                this.classList.remove('bi-clipboard-check');
-                this.classList.add('bi-clipboard');
-                this.style.color = '';
-            }, 1500);
-        }).catch(err => {
-            console.error('Ошибка копирования:', err);
-            alert('Не удалось скопировать токен');
-        });
+                setTimeout(() => {
+                    this.classList.remove('bi-clipboard-check');
+                    this.classList.add('bi-clipboard');
+                    this.style.color = '';
+                }, 1500);
+            }).catch(err => {
+                console.error('Ошибка копирования:', err);
+                fallbackCopyText(token, this);
+            });
+        } else {
+            // Fallback метод для старых браузеров или HTTP
+            fallbackCopyText(token, this);
+        }
     });
 });
+
+// Fallback функция копирования через временный textarea
+function fallbackCopyText(text, iconElement) {
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    textarea.style.position = 'fixed';
+    textarea.style.top = '0';
+    textarea.style.left = '-9999px';
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+        document.execCommand('copy');
+        // Визуальный feedback
+        iconElement.classList.remove('bi-clipboard');
+        iconElement.classList.add('bi-clipboard-check');
+        iconElement.style.color = 'green';
+
+        setTimeout(() => {
+            iconElement.classList.remove('bi-clipboard-check');
+            iconElement.classList.add('bi-clipboard');
+            iconElement.style.color = '';
+        }, 1500);
+    } catch (err) {
+        console.error('Ошибка копирования:', err);
+        alert('Не удалось скопировать токен. Скопируйте вручную: ' + text);
+    } finally {
+        document.body.removeChild(textarea);
+    }
+}
 </script>
 {% else %}
 <div class="alert alert-info">
