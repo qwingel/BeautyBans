@@ -3,40 +3,134 @@
 {% block title %}Вход - BeautyBans{% endblock %}
 
 {% block content %}
-<div class="card" style="max-width: 450px;">
-    <div class="card-body">
-        <h1 class="mb-4">Вход в BeautyBans</h1>
+<style>
+    .login-container {
+        min-height: calc(100vh - 200px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .login-card {
+        width: 100%;
+        max-width: 420px;
+        background: var(--bb-surface);
+        border-radius: 0.75rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+        padding: 2.5rem;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: var(--bb-text);
+        margin-bottom: 0.5rem;
+    }
+
+    .login-subtitle {
+        font-size: 0.875rem;
+        color: var(--bb-text-muted);
+    }
+
+    .login-form .form-group {
+        margin-bottom: 1.25rem;
+    }
+
+    .login-form .form-control {
+        padding: 0.75rem 1rem;
+        font-size: 0.9375rem;
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 0.75rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+        margin-top: 0.5rem;
+    }
+
+    .alert-custom {
+        padding: 0.875rem 1rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        margin-bottom: 1.5rem;
+        border: 1px solid;
+    }
+
+    .alert-danger-custom {
+        background: #fee2e2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .alert-danger-custom {
+            background: #7f1d1d;
+            border-color: #991b1b;
+            color: #fecaca;
+        }
+    }
+
+    :root[data-theme="dark"] .alert-danger-custom {
+        background: #7f1d1d;
+        border-color: #991b1b;
+        color: #fecaca;
+    }
+</style>
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <h1 class="login-title">BeautyBans</h1>
+            <p class="login-subtitle">Панель управления</p>
+        </div>
 
         {% if form.errors %}
-        <div class="alert alert-danger" role="alert">
-            Неверное имя пользователя или пароль.
+        <div class="alert-custom alert-danger-custom">
+            <i class="bi bi-exclamation-circle-fill"></i>
+            Неверное имя пользователя или пароль
         </div>
         {% endif %}
 
-        {% if next %}
-            {% if user.is_authenticated %}
-            <div class="alert alert-warning" role="alert">
-                У вас нет доступа к этой странице.
-            </div>
-            {% endif %}
-        {% endif %}
-
-        <form method="post" action="{% url 'login' %}">
+        <form method="post" action="{% url 'login' %}" class="login-form">
             {% csrf_token %}
 
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="id_username" class="form-label">Имя пользователя</label>
-                <input type="text" name="username" class="form-control" id="id_username" required autofocus>
+                <input
+                    type="text"
+                    name="username"
+                    class="form-control"
+                    id="id_username"
+                    placeholder="Введите имя пользователя"
+                    required
+                    autofocus
+                >
             </div>
 
-            <div class="mb-3">
+            <div class="form-group">
                 <label for="id_password" class="form-label">Пароль</label>
-                <input type="password" name="password" class="form-control" id="id_password" required>
+                <input
+                    type="password"
+                    name="password"
+                    class="form-control"
+                    id="id_password"
+                    placeholder="Введите пароль"
+                    required
+                >
             </div>
 
             <input type="hidden" name="next" value="{{ next }}" />
 
-            <button type="submit" class="btn btn-primary w-100">Войти</button>
+            <button type="submit" class="btn btn-primary login-btn">
+                <i class="bi bi-box-arrow-in-right"></i>
+                Войти
+            </button>
         </form>
     </div>
 </div>
