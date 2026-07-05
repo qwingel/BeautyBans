@@ -3,56 +3,82 @@
 {% block title %}Снять наказание - BeautyBans{% endblock %}
 
 {% block content %}
-<h1>Снятие наказания</h1>
+<div class="page-header">
+    <h1 class="page-title">Снятие наказания</h1>
+</div>
 
-<div class="card mt-4 mb-4">
+<!-- Информация о наказании -->
+<div class="card">
     <div class="card-body">
-        <h5>Информация о наказании</h5>
-        <table class="table table-bordered">
-            <tr>
-                <th>Тип:</th>
-                <td>{{ punishment.get_punishment_type_display }}</td>
-            </tr>
-            <tr>
-                <th>Игрок:</th>
-                <td>{{ punishment.target_name }} ({{ punishment.target_steam_id }})</td>
-            </tr>
-            <tr>
-                <th>Причина:</th>
-                <td>{{ punishment.reason }}</td>
-            </tr>
-            <tr>
-                <th>Администратор:</th>
-                <td>{{ punishment.admin.name|default:"Консоль" }}</td>
-            </tr>
-            <tr>
-                <th>Сервер:</th>
-                <td>{{ punishment.server.name }}</td>
-            </tr>
-            <tr>
-                <th>Выдано:</th>
-                <td>{{ punishment.issued_at|date:"d.m.Y H:i" }}</td>
-            </tr>
-        </table>
+        <h3 style="margin-bottom: 1.25rem; font-size: 1.125rem;">Информация о наказании</h3>
+        <div class="details-content">
+            <div class="details-item">
+                <div class="details-label">Тип</div>
+                <div class="details-value">
+                    {% if punishment.punishment_type == 'ban' %}
+                        <span class="badge badge-danger">БАН</span>
+                    {% elif punishment.punishment_type == 'mute' %}
+                        <span class="badge badge-warning">МУТ</span>
+                    {% else %}
+                        <span class="badge badge-info">ГАГ</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="details-item">
+                <div class="details-label">Игрок</div>
+                <div class="details-value"><strong>{{ punishment.target_name }}</strong></div>
+            </div>
+            <div class="details-item">
+                <div class="details-label">Steam ID</div>
+                <div class="details-value mono">{{ punishment.target_steam_id }}</div>
+            </div>
+            <div class="details-item">
+                <div class="details-label">Сервер</div>
+                <div class="details-value">{{ punishment.server.name }}</div>
+            </div>
+            <div class="details-item">
+                <div class="details-label">Администратор</div>
+                <div class="details-value">{{ punishment.admin.name|default:"Консоль" }}</div>
+            </div>
+            <div class="details-item">
+                <div class="details-label">Выдано</div>
+                <div class="details-value">{{ punishment.issued_at|date:"d.m.Y H:i" }}</div>
+            </div>
+            <div class="details-item" style="grid-column: 1 / -1;">
+                <div class="details-label">Причина наказания</div>
+                <div class="details-value">{{ punishment.reason }}</div>
+            </div>
+        </div>
     </div>
 </div>
 
+<!-- Форма снятия -->
 <div class="card">
     <div class="card-body">
         <form method="post">
             {% csrf_token %}
 
-            <div class="mb-3">
+            <div style="margin-bottom: 1.25rem;">
                 <label for="{{ form.unban_reason.id_for_label }}" class="form-label">Причина снятия</label>
                 {{ form.unban_reason }}
                 {% if form.unban_reason.errors %}
-                <div class="text-danger">{{ form.unban_reason.errors }}</div>
+                <ul class="errorlist">
+                    {% for error in form.unban_reason.errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
                 {% endif %}
             </div>
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-success">Снять наказание</button>
-                <a href="{% url 'punishments:list' %}" class="btn btn-secondary">Отмена</a>
+            <div style="display: flex; gap: 0.75rem;">
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-check-circle"></i>
+                    Снять наказание
+                </button>
+                <a href="{% url 'punishments:list' %}" class="btn btn-secondary">
+                    <i class="bi bi-x-circle"></i>
+                    Отмена
+                </a>
             </div>
         </form>
     </div>
