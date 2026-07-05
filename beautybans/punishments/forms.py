@@ -32,7 +32,7 @@ class PunishmentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         # Устанавливаем пустой выбор вместо "-------"
-        self.fields['punishment_type'].empty_label = 'Выберите тип'
+        self.fields['punishment_type'].empty_label = 'Выберите тип наказания'
         self.fields['admin'].empty_label = 'Консоль (без админа)'
         self.fields['server'].empty_label = 'Выберите сервер'
 

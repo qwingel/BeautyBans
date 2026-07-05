@@ -295,9 +295,10 @@
             font-size: 0.875rem;
             border: 1px solid var(--bb-border);
             border-radius: 0.375rem;
-            background: var(--bb-surface);
-            color: var(--bb-text);
+            background: var(--bb-surface) !important;
+            color: var(--bb-text) !important;
             transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            -webkit-text-fill-color: var(--bb-text) !important;
         }
 
         .form-control::placeholder {
@@ -309,7 +310,17 @@
             outline: none;
             border-color: var(--bb-primary);
             box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-            background: var(--bb-surface);
+            background: var(--bb-surface) !important;
+        }
+
+        /* Автозаполнение браузера */
+        .form-control:-webkit-autofill,
+        .form-control:-webkit-autofill:hover,
+        .form-control:-webkit-autofill:focus,
+        .form-control:-webkit-autofill:active {
+            -webkit-box-shadow: 0 0 0 30px var(--bb-surface) inset !important;
+            -webkit-text-fill-color: var(--bb-text) !important;
+            caret-color: var(--bb-text) !important;
         }
 
         /* Checkbox и label */
