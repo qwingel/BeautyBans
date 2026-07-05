@@ -1,6 +1,7 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
+from django.utils import timezone
 from .models import Punishment
 from servers.models import Server
 from servers.utils import verify_server_if_needed
@@ -94,10 +95,15 @@ def check_player(request):
         for punishment in active_punishments.distinct():
             time_remaining = punishment.get_time_remaining()
 
+            # Конвертируем в локальное время (Europe/Moscow)
+            expires_at_local = None
+            if punishment.expires_at:
+                expires_at_local = timezone.localtime(punishment.expires_at).strftime('%Y-%m-%d %H:%M:%S')
+
             punishments_list.append({
                 'type': punishment.punishment_type,
                 'reason': punishment.reason,
-                'expires_at': punishment.expires_at.strftime('%Y-%m-%d %H:%M:%S') if punishment.expires_at else None,
+                'expires_at': expires_at_local,
                 'remaining_minutes': int(time_remaining.total_seconds() / 60) if time_remaining else None,
                 'is_permanent': punishment.duration == 0
             })
