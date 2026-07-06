@@ -35,8 +35,8 @@ class AdminServer(models.Model):
     server = models.ForeignKey(Server, on_delete=models.CASCADE, related_name='admin_permissions')
     group = models.ForeignKey(AdminGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='server_assignments')
     flags = models.CharField(max_length=32, default='', blank=True, help_text='Индивидуальные флаги (если не используется группа)')
-    immunity = models.IntegerField(default=0, help_text='Индивидуальный иммунитет (если не используется группа)')
-    duration = models.IntegerField(default=0, help_text='Длительность прав в минутах (0 = навсегда)')
+    immunity = models.IntegerField(default=0, blank=True, null=True, help_text='Индивидуальный иммунитет (если не используется группа)')
+    duration = models.IntegerField(default=0, blank=True, help_text='Длительность прав в минутах (0 = навсегда)')
     expires_at = models.DateTimeField(null=True, blank=True, help_text='Дата истечения прав (вычисляется автоматически)')
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -52,7 +52,9 @@ class AdminServer(models.Model):
         return self.flags if self.flags else (self.group.flags if self.group else '')
 
     def get_effective_immunity(self):
-        return self.immunity if self.immunity else (self.group.immunity if self.group else 0)
+        if self.immunity is not None:
+            return self.immunity
+        return self.group.immunity if self.group else 0
 
     def save(self, *args, **kwargs):
         """Автоматически вычисляем expires_at из duration"""
