@@ -13,7 +13,6 @@ def admin_panel(request):
     admins = Admin.objects.all().order_by('-created_at')
     groups = AdminGroup.objects.all().order_by('name')
 
-    # Фильтруем только НЕ истёкшие права
     now = timezone.now()
     permissions = AdminServer.objects.filter(
         Q(expires_at__isnull=True) | Q(expires_at__gt=now)
@@ -158,6 +157,14 @@ def permission_add(request):
     if request.method == 'POST':
         form = AdminServerForm(request.POST)
         if form.is_valid():
+            admin_id = form.cleaned_data['admin'].id
+            server_id = form.cleaned_data['server'].id
+
+            AdminServer.objects.filter(
+                admin_id=admin_id,
+                server_id=server_id
+            ).delete()
+
             form.save()
             return redirect(reverse('admins:admin_panel') + '?tab=permissions')
     else:
@@ -180,6 +187,14 @@ def permission_edit(request, pk):
     if request.method == 'POST':
         form = AdminServerForm(request.POST, instance=permission)
         if form.is_valid():
+            admin_id = form.cleaned_data['admin'].id
+            server_id = form.cleaned_data['server'].id
+
+            AdminServer.objects.filter(
+                admin_id=admin_id,
+                server_id=server_id
+            ).exclude(pk=pk).delete()
+
             form.save()
             return redirect(reverse('admins:admin_panel') + '?tab=permissions')
     else:

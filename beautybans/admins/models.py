@@ -57,7 +57,6 @@ class AdminServer(models.Model):
         return self.group.immunity if self.group else 0
 
     def save(self, *args, **kwargs):
-        """Автоматически вычисляем expires_at из duration"""
         if self.duration > 0:
             from django.utils import timezone
             from datetime import timedelta
