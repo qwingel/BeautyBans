@@ -1,6 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.utils import timezone
+from django.db.models import Q
 from .models import Admin, AdminGroup, AdminServer
 from .forms import AdminForm, AdminGroupForm, AdminServerForm
 from servers.models import Server
@@ -10,7 +12,12 @@ from servers.models import Server
 def admin_panel(request):
     admins = Admin.objects.all().order_by('-created_at')
     groups = AdminGroup.objects.all().order_by('name')
-    permissions = AdminServer.objects.all().select_related('admin', 'server', 'group').order_by('-created_at')
+
+    # Фильтруем только НЕ истёкшие права
+    now = timezone.now()
+    permissions = AdminServer.objects.filter(
+        Q(expires_at__isnull=True) | Q(expires_at__gt=now)
+    ).select_related('admin', 'server', 'group').order_by('-created_at')
 
     server_filter = request.GET.get('server')
     group_filter = request.GET.get('group')
