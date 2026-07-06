@@ -377,3 +377,113 @@ def remove_punishment(request):
         return JsonResponse({'error': 'Invalid JSON'}, status=400, json_dumps_params={'ensure_ascii': False})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def get_active_punishments(request):
+    """
+    API для получения списка активных наказаний по типу
+
+    POST /adminpanel/punishments/api/list/
+    Body: {
+        "server_token": "uuid-сервера",
+        "punishment_type": "ban"  // ban, mute, gag или null для всех
+    }
+
+    Response: {
+        "success": true,
+        "count": 5,
+        "punishments": [
+            {
+                "id": 123,
+                "target_steam_id": "STEAM_0:1:123456",
+                "target_name": "Player",
+                "target_ip": "127.0.0.1",
+                "reason": "Читы",
+                "issued_at": "2026-07-05 15:00:00",
+                "expires_at": "2026-07-05 18:00:00",
+                "duration": 60,
+                "is_permanent": false,
+                "admin": "AdminName",
+                "server": "ServerName"
+            }
+        ]
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        server_token = data.get('server_token')
+        punishment_type = data.get('punishment_type')  # Опционально
+
+        # Валидация
+        if not server_token:
+            return JsonResponse({'error': 'Missing server_token'}, status=400, json_dumps_params={'ensure_ascii': False})
+
+        # Проверка токена сервера
+        try:
+            server = Server.objects.get(token=server_token, is_active=True)
+            verify_server_if_needed(server)
+        except Server.DoesNotExist:
+            return JsonResponse({'error': 'Invalid server token'}, status=403, json_dumps_params={'ensure_ascii': False})
+
+        # Проверка типа наказания (если указан)
+        if punishment_type:
+            valid_types = ['ban', 'mute', 'gag']
+            if punishment_type not in valid_types:
+                return JsonResponse({
+                    'error': f'Invalid punishment_type. Must be one of: {valid_types}'
+                }, status=400, json_dumps_params={'ensure_ascii': False})
+
+        # Получаем активные наказания
+        punishments = Punishment.objects.filter(
+            is_active=True,
+            server=server
+        ).select_related('admin', 'server')
+
+        # Фильтр по типу (если указан)
+        if punishment_type:
+            punishments = punishments.filter(punishment_type=punishment_type)
+
+        # Автоснятие истёкших
+        for punishment in punishments:
+            punishment.auto_expire()
+
+        # Перезагружаем после автоснятия
+        punishments = punishments.filter(is_active=True).order_by('-issued_at')
+
+        # Формируем список
+        punishments_list = []
+        for punishment in punishments:
+            # Конвертируем время в локальное
+            issued_at_local = timezone.localtime(punishment.issued_at).strftime('%Y-%m-%d %H:%M:%S')
+            expires_at_local = None
+            if punishment.expires_at:
+                expires_at_local = timezone.localtime(punishment.expires_at).strftime('%Y-%m-%d %H:%M:%S')
+
+            punishments_list.append({
+                'id': punishment.id,
+                'type': punishment.punishment_type,
+                'target_steam_id': punishment.target_steam_id,
+                'target_name': punishment.target_name,
+                'target_ip': punishment.target_ip,
+                'ban_subnet': punishment.ban_subnet,
+                'reason': punishment.reason,
+                'issued_at': issued_at_local,
+                'expires_at': expires_at_local,
+                'duration': punishment.duration,
+                'is_permanent': punishment.duration == 0,
+                'admin': punishment.admin.name if punishment.admin else 'Консоль',
+                'server': punishment.server.name
+            })
+
+        return JsonResponse({
+            'success': True,
+            'count': len(punishments_list),
+            'punishments': punishments_list
+        }, json_dumps_params={'ensure_ascii': False})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400, json_dumps_params={'ensure_ascii': False})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
