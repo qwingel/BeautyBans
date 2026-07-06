@@ -7,6 +7,7 @@ WORKDIR /app
 # Установка системных зависимостей
 RUN apt-get update && apt-get install -y \
     postgresql-client \
+    cron \
     && rm -rf /var/lib/apt/lists/*
 
 # Копируем requirements
