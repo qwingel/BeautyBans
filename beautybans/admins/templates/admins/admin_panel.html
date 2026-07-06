@@ -212,6 +212,7 @@
                         <th>Администратор</th>
                         <th>Сервер</th>
                         <th>Группа</th>
+                        <th>Истекает</th>
                         <th>Иммунитет</th>
                         <th width="120">Действия</th>
                     </tr>
@@ -228,6 +229,13 @@
                                 <span class="text-muted text-sm">Индивидуальные</span>
                             {% endif %}
                         </td>
+                        <td>
+                            {% if perm.expires_at %}
+                                <span class="badge badge-warning">{{ perm.expires_at|date:"d.m.Y H:i" }}</span>
+                            {% else %}
+                                <span class="badge badge-success">Навсегда</span>
+                            {% endif %}
+                        </td>
                         <td><span class="badge badge-primary">{{ perm.get_effective_immunity }}</span></td>
                         <td>
                             <div style="display: flex; gap: 0.375rem;">
@@ -241,7 +249,7 @@
                         </td>
                     </tr>
                     <tr class="details-row collapse" id="perm-details-{{ perm.pk }}">
-                        <td colspan="5">
+                        <td colspan="6">
                             <div class="details-content">
                                 <div class="details-item">
                                     <div class="details-label">Steam ID</div>
@@ -250,6 +258,16 @@
                                 <div class="details-item">
                                     <div class="details-label">Флаги</div>
                                     <div class="details-value mono">{{ perm.get_effective_flags|default:"—" }}</div>
+                                </div>
+                                <div class="details-item">
+                                    <div class="details-label">Длительность (мин)</div>
+                                    <div class="details-value">
+                                        {% if perm.duration > 0 %}
+                                            {{ perm.duration }}
+                                        {% else %}
+                                            Постоянно
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 <div class="details-item">
                                     <div class="details-label">Дата создания</div>
