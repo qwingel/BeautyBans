@@ -37,13 +37,14 @@ class AdminForm(forms.ModelForm):
 class AdminServerForm(forms.ModelForm):
     class Meta:
         model = AdminServer
-        fields = ['admin', 'server', 'group', 'flags', 'immunity']
+        fields = ['admin', 'server', 'group', 'flags', 'immunity', 'duration']
         widgets = {
             'admin': forms.Select(attrs={'class': 'form-select'}),
             'server': forms.Select(attrs={'class': 'form-select'}),
             'group': forms.Select(attrs={'class': 'form-select'}),
             'flags': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Оставьте пустым для флагов из группы'}),
             'immunity': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Оставьте пустым для иммунитета из группы'}),
+            'duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': '0 для постоянных прав, минуты для временных'}),
         }
         labels = {
             'admin': 'Администратор',
@@ -51,6 +52,7 @@ class AdminServerForm(forms.ModelForm):
             'group': 'Группа',
             'flags': 'Индивидуальные флаги',
             'immunity': 'Индивидуальный иммунитет',
+            'duration': 'Длительность прав (минуты)',
         }
 
     def __init__(self, *args, **kwargs):

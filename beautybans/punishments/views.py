@@ -83,7 +83,7 @@ def punishment_unban(request, pk):
         form = UnbanForm(request.POST)
         if form.is_valid():
             punishment.is_active = False
-            punishment.unban_reason = form.cleaned_data['unban_reason']
+            punishment.unban_reason = form.cleaned_data['unban_reason'] or 'Снято администратором'
             # TODO: установить unbanned_by из текущего пользователя
             punishment.save()
             return redirect('punishments:list')

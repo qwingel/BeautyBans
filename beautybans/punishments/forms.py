@@ -43,6 +43,6 @@ class PunishmentForm(forms.ModelForm):
 class UnbanForm(forms.Form):
     unban_reason = forms.CharField(
         label='Причина снятия',
-        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Укажите причину снятия наказания'}),
-        required=True
+        widget=forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'По умолчанию: Снято администратором'}),
+        required=False
     )

@@ -36,6 +36,8 @@ class AdminServer(models.Model):
     group = models.ForeignKey(AdminGroup, on_delete=models.SET_NULL, null=True, blank=True, related_name='server_assignments')
     flags = models.CharField(max_length=32, default='', blank=True, help_text='Индивидуальные флаги (если не используется группа)')
     immunity = models.IntegerField(default=0, help_text='Индивидуальный иммунитет (если не используется группа)')
+    duration = models.IntegerField(default=0, help_text='Длительность прав в минутах (0 = навсегда)')
+    expires_at = models.DateTimeField(null=True, blank=True, help_text='Дата истечения прав (вычисляется автоматически)')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -51,3 +53,20 @@ class AdminServer(models.Model):
 
     def get_effective_immunity(self):
         return self.immunity if self.immunity else (self.group.immunity if self.group else 0)
+
+    def save(self, *args, **kwargs):
+        """Автоматически вычисляем expires_at из duration"""
+        if self.duration > 0:
+            from django.utils import timezone
+            from datetime import timedelta
+            self.expires_at = timezone.now() + timedelta(minutes=self.duration)
+        else:
+            self.expires_at = None
+        super().save(*args, **kwargs)
+
+    def is_expired(self):
+        """Проверка истёкших прав"""
+        if not self.expires_at:
+            return False
+        from django.utils import timezone
+        return timezone.now() >= self.expires_at

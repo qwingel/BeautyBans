@@ -17,9 +17,13 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput --clear
 
-echo "Setting up cron for auto-expiring punishments..."
-# Создаём crontab файл
-echo "*/5 * * * * cd /app && /usr/local/bin/python manage.py expire_punishments >> /var/log/cron.log 2>&1" > /etc/cron.d/beautybans
+echo "Setting up cron for auto-expiring..."
+# Создаём crontab файл с двумя задачами
+cat > /etc/cron.d/beautybans << 'EOF'
+*/5 * * * * root cd /app && /usr/local/bin/python manage.py expire_punishments >> /var/log/cron.log 2>&1
+*/5 * * * * root cd /app && /usr/local/bin/python manage.py expire_admin_permissions >> /var/log/cron.log 2>&1
+EOF
+
 chmod 0644 /etc/cron.d/beautybans
 crontab /etc/cron.d/beautybans
 touch /var/log/cron.log

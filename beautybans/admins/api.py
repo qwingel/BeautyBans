@@ -60,6 +60,15 @@ def check_admin(request):
                 server=server
             )
 
+            # Проверка истёкших прав
+            if permission.is_expired():
+                return JsonResponse({
+                    'is_admin': False,
+                    'flags': '',
+                    'immunity': 0,
+                    'group': None
+                }, json_dumps_params={'ensure_ascii': False})
+
             return JsonResponse({
                 'is_admin': True,
                 'flags': permission.get_effective_flags(),
