@@ -316,13 +316,18 @@ def remove_punishment(request):
             # Проверка прав на снятие
             can_remove = False
 
-            # 1. Консольное наказание (admin = NULL) - может снять любой админ
-            if not punishment.admin:
+            # 0. Запрос от самой консоли сервера (без admin_steam_id) - полные права
+            if not admin:
                 can_remove = True
 
-            # 2. Админ снимает свой собственный бан
-            elif admin and punishment.admin.id == admin.id:
+            # 1. Админ снимает свой собственный бан
+            elif punishment.admin and punishment.admin.id == admin.id:
                 can_remove = True
+
+            # 2. Консольное наказание (admin = NULL) - только высокий иммунитет (>= 90)
+            elif not punishment.admin:
+                if admin_immunity >= 90:
+                    can_remove = True
 
             # 3. Админ с иммунитетом выше того, кто выдал
             elif admin and punishment.admin:
