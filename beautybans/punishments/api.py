@@ -2,6 +2,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
+from django.db.models import Q
 from .models import Punishment
 from servers.models import Server
 from servers.utils import verify_server_if_needed
@@ -487,6 +488,171 @@ def get_active_punishments(request):
         return JsonResponse({
             'success': True,
             'count': len(punishments_list),
+            'punishments': punishments_list
+        }, json_dumps_params={'ensure_ascii': False})
+
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400, json_dumps_params={'ensure_ascii': False})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500, json_dumps_params={'ensure_ascii': False})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def search_punishments(request):
+    """
+    API для поиска наказаний с проверкой прав на разбан
+
+    POST /adminpanel/punishments/api/search/
+    Body: {
+        "server_token": "uuid-сервера",
+        "admin_steam_id": "STEAM_0:1:123456",  // Админ, который хочет разбанить
+        "punishment_type": "ban",               // ban, mute, gag, all (по умолчанию all)
+        "search_query": "Player123",            // Ник или Steam ID (точное совпадение)
+        "from_server": true                     // true = лимит 20, false = все
+    }
+
+    Response: {
+        "success": true,
+        "count": 3,
+        "can_unban_count": 2,
+        "punishments": [
+            {
+                ...данные наказания,
+                "can_unban": true,
+                "unban_reason": "Выдал сам"
+            }
+        ]
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        server_token = data.get('server_token')
+        admin_steam_id = data.get('admin_steam_id')
+        punishment_type = data.get('punishment_type', 'all')
+        search_query = data.get('search_query')
+        from_server = data.get('from_server', False)
+
+        # Валидация
+        if not server_token or not admin_steam_id or not search_query:
+            return JsonResponse({'error': 'Missing required fields'}, status=400, json_dumps_params={'ensure_ascii': False})
+
+        # Проверка токена
+        try:
+            server = Server.objects.get(token=server_token, is_active=True)
+            verify_server_if_needed(server)
+        except Server.DoesNotExist:
+            return JsonResponse({'error': 'Invalid server token'}, status=403, json_dumps_params={'ensure_ascii': False})
+
+        # Получаем админа и его права на этом сервере
+        from admins.models import Admin, AdminServer
+        try:
+            requesting_admin = Admin.objects.get(steam_id=admin_steam_id, is_active=True)
+        except Admin.DoesNotExist:
+            return JsonResponse({'error': 'Admin not found'}, status=404, json_dumps_params={'ensure_ascii': False})
+
+        admin_permission = AdminServer.objects.filter(
+            admin=requesting_admin,
+            server=server
+        ).select_related('group').first()
+
+        if not admin_permission:
+            return JsonResponse({'error': 'Admin has no permissions on this server'}, status=403, json_dumps_params={'ensure_ascii': False})
+
+        if admin_permission.is_expired():
+            return JsonResponse({'error': 'Admin permissions expired'}, status=403, json_dumps_params={'ensure_ascii': False})
+
+        requesting_immunity = admin_permission.get_effective_immunity()
+
+        # Поиск наказаний (точное совпадение ника или Steam ID)
+        punishments = Punishment.objects.filter(
+            Q(target_name__iexact=search_query) | Q(target_steam_id__iexact=search_query),
+            is_active=True
+        ).select_related('admin', 'server')
+
+        # Фильтр по типу
+        if punishment_type and punishment_type != 'all':
+            valid_types = ['ban', 'mute', 'gag']
+            if punishment_type not in valid_types:
+                return JsonResponse({'error': f'Invalid punishment_type: {punishment_type}'}, status=400, json_dumps_params={'ensure_ascii': False})
+            punishments = punishments.filter(punishment_type=punishment_type)
+
+        # Автоснятие истёкших
+        for punishment in punishments:
+            punishment.auto_expire()
+
+        punishments = punishments.filter(is_active=True).order_by('-issued_at')
+
+        # Лимит если from_server = true
+        if from_server:
+            punishments = punishments[:20]
+
+        # Формируем список с проверкой прав на разбан
+        punishments_list = []
+        can_unban_count = 0
+
+        for punishment in punishments:
+            can_unban = False
+            unban_reason_text = ''
+
+            if punishment.admin and punishment.admin.steam_id == admin_steam_id:
+                # Админ сам выдал наказание
+                can_unban = True
+                unban_reason_text = 'Выдал сам'
+            elif punishment.admin:
+                # Проверяем иммунитет админа, который выдал наказание
+                issuer_permission = AdminServer.objects.filter(
+                    admin=punishment.admin,
+                    server=punishment.server
+                ).select_related('group').first()
+
+                if issuer_permission and not issuer_permission.is_expired():
+                    issuer_immunity = issuer_permission.get_effective_immunity()
+                    if requesting_immunity > issuer_immunity:
+                        can_unban = True
+                        unban_reason_text = f'Иммунитет выше ({requesting_immunity} > {issuer_immunity})'
+                else:
+                    # Админ, который выдал, больше не имеет прав
+                    can_unban = True
+                    unban_reason_text = 'Админ не имеет прав'
+            else:
+                # Наказание выдано консолью — может снять только высокий иммунитет
+                if requesting_immunity >= 90:
+                    can_unban = True
+                    unban_reason_text = 'Высокий иммунитет'
+
+            if can_unban:
+                can_unban_count += 1
+
+            # Время
+            issued_at_local = timezone.localtime(punishment.issued_at).strftime('%Y-%m-%d %H:%M:%S')
+            expires_at_local = None
+            if punishment.expires_at:
+                expires_at_local = timezone.localtime(punishment.expires_at).strftime('%Y-%m-%d %H:%M:%S')
+
+            punishments_list.append({
+                'id': punishment.id,
+                'type': punishment.punishment_type,
+                'target_steam_id': punishment.target_steam_id,
+                'target_name': punishment.target_name,
+                'target_ip': punishment.target_ip,
+                'ban_subnet': punishment.ban_subnet,
+                'reason': punishment.reason,
+                'issued_at': issued_at_local,
+                'expires_at': expires_at_local,
+                'duration': punishment.duration,
+                'is_permanent': punishment.duration == 0,
+                'admin': punishment.admin.name if punishment.admin else 'Консоль',
+                'admin_steam_id': punishment.admin.steam_id if punishment.admin else None,
+                'server': punishment.server.name,
+                'can_unban': can_unban,
+                'unban_reason': unban_reason_text
+            })
+
+        return JsonResponse({
+            'success': True,
+            'count': len(punishments_list),
+            'can_unban_count': can_unban_count,
             'punishments': punishments_list
         }, json_dumps_params={'ensure_ascii': False})
 
