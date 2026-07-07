@@ -247,35 +247,124 @@
 
 ---
 
-### 6. Получение списка активных наказаний
+### 6. Получение списка наказаний
 
 **POST** `/adminpanel/punishments/api/list/`
 
-Возвращает список всех активных наказаний на сервере (опционально с фильтром по типу).
+Получение списка наказаний по фильтрам
 
 **Request:**
 ```json
 {
     "server_token": "550e8400-e29b-41d4-a716-446655440000",
-    "punishment_type": "ban"
+    "punishment_type": "ban",
+    "is_active": true
 }
 ```
 
 **Параметры:**
-- `server_token` — UUID сервера (обязательно)
-- `punishment_type` — Тип наказания: `ban`, `mute`, `gag` (опционально, если не указан — возвращает все типы)
+- `server_token` — UUID сервера (обязательно, определяет какой сервер делает запрос)
+- `punishment_type` — `ban`, `mute`, `gag`, `all` (опционально, по умолчанию `all`)
+- `is_active` — `true` = активные, `false` = снятые, `null` = все (опционально, по умолчанию `true`)
 
-**Response (успех):**
+**Response:**
 ```json
 {
     "success": true,
-    "count": 2,
+    "count": 15,
     "punishments": [
         {
             "id": 123,
             "type": "ban",
             "target_steam_id": "STEAM_0:1:123456",
-            "target_name": "Player Name",
+            "target_name": "Player",
+            "target_ip": "127.0.0.1",
+            "ban_subnet": false,
+            "reason": "Читы",
+            "issued_at": "2026-07-05 15:00:00",
+            "expires_at": "2026-07-05 18:00:00",
+            "duration": 180,
+            "is_permanent": false,
+            "is_active": true,
+            "admin": "AdminName",
+            "admin_steam_id": "STEAM_0:1:999999",
+            "server": "My Server",
+            "unbanned_by": null,
+            "unban_reason": ""
+        }
+    ]
+}
+```
+
+**Примеры использования:**
+
+1. **Все активные баны текущего сервера**:
+```json
+{
+    "server_token": "...",
+    "punishment_type": "ban"
+}
+```
+
+2. **Все снятые муты текущего сервера**:
+```json
+{
+    "server_token": "...",
+    "punishment_type": "mute",
+    "is_active": false
+}
+```
+
+3. **Все наказания текущего сервера (активные и снятые)**:
+```json
+{
+    "server_token": "...",
+    "is_active": null
+}
+```
+
+**Errors:**
+- `400` — Missing server_token / Invalid punishment_type
+- `403` — Invalid server token
+
+---
+
+### 7. Поиск наказаний
+
+**POST** `/adminpanel/punishments/api/search/`
+
+Поиск активных наказаний по нику/Steam ID
+
+**Request:**
+```json
+{
+    "server_token": "550e8400-e29b-41d4-a716-446655440000",
+    "admin_steam_id": "STEAM_0:1:999999",
+    "punishment_type": "ban",
+    "search_query": "Player123",
+    "from_server": true
+}
+```
+
+**Параметры:**
+- `server_token` — UUID сервера (обязательно)
+- `admin_steam_id` — Steam ID админа (обязательно, для проверки прав)
+- `punishment_type` — `ban`, `mute`, `gag`, `all` (по умолчанию `all`)
+- `search_query` — Ник или Steam ID (регистр не важен, обязательно)
+- `from_server` — от сервера ли поступает запрос. `true` = лимит 20 записей, `false` = все (опционально, по умолчанию `false`)
+
+**Response:**
+```json
+{
+    "success": true,
+    "count": 3,
+    "can_unban_count": 2,
+    "punishments": [
+        {
+            "id": 123,
+            "type": "ban",
+            "target_steam_id": "STEAM_0:1:123456",
+            "target_name": "Player123",
             "target_ip": "127.0.0.1",
             "ban_subnet": false,
             "reason": "Читы",
@@ -284,33 +373,40 @@
             "duration": 180,
             "is_permanent": false,
             "admin": "AdminName",
-            "server": "My Server"
+            "admin_steam_id": "STEAM_0:1:654321",
+            "server": "My Server",
+            "server_id": 5,
+            "can_unban": true,
+            "unban_reason": "Выдал сам"
         },
         {
             "id": 124,
             "type": "ban",
-            "target_steam_id": "STEAM_0:1:654321",
-            "target_name": "Cheater",
+            "target_steam_id": "STEAM_0:1:123456",
+            "target_name": "Player123",
             "target_ip": null,
             "ban_subnet": false,
             "reason": "WallHack",
-            "issued_at": "2026-07-05 14:00:00",
+            "issued_at": "2026-07-04 10:00:00",
             "expires_at": null,
             "duration": 0,
             "is_permanent": true,
-            "admin": "Консоль",
-            "server": "My Server"
+            "admin": "SuperAdmin",
+            "admin_steam_id": "STEAM_0:1:111111",
+            "server": "My Server",
+            "server_id": 5,
+            "can_unban": false,
+            "unban_reason": ""
         }
     ]
 }
 ```
 
-**Особенности:**
-- `expires_at` = `null` для перманентных наказаний
-
 **Errors:**
-- `400` — Missing server_token / Invalid punishment_type
-- `403` — Invalid server token
+- `400` — Missing required fields / Invalid punishment_type
+- `403` — Invalid server token / Admin has no permissions / Admin permissions expired
+- `404` — Admin not found
+
 
 ## 📝 Примеры ошибок
 

@@ -42,7 +42,7 @@ class Punishment(models.Model):
     def is_expired(self):
         if self.duration == 0:
             return False
-        return timezone.now() > self.expires_at if self.expires_at else False
+        return timezone.now() >= self.expires_at if self.expires_at else False
 
     def get_time_remaining(self):
         if not self.is_active or self.duration == 0:

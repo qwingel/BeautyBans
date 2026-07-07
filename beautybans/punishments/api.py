@@ -383,12 +383,13 @@ def remove_punishment(request):
 @require_http_methods(["POST"])
 def get_active_punishments(request):
     """
-    API для получения списка активных наказаний по типу
+    API для получения списка наказаний с фильтрами
 
     POST /adminpanel/punishments/api/list/
     Body: {
         "server_token": "uuid-сервера",
-        "punishment_type": "ban"  // ban, mute, gag или null для всех
+        "punishment_type": "ban",  // ban, mute, gag, all (опционально, по умолчанию all)
+        "is_active": true           // true = активные, false = снятые, null = все (опционально, по умолчанию true)
     }
 
     Response: {
@@ -414,43 +415,45 @@ def get_active_punishments(request):
     try:
         data = json.loads(request.body)
         server_token = data.get('server_token')
-        punishment_type = data.get('punishment_type')  # Опционально
+        punishment_type = data.get('punishment_type', 'all')
+        is_active = data.get('is_active', True)  # По умолчанию только активные
 
-        # Валидация
+        # Проверка токена
         if not server_token:
             return JsonResponse({'error': 'Missing server_token'}, status=400, json_dumps_params={'ensure_ascii': False})
 
-        # Проверка токена сервера
         try:
             server = Server.objects.get(token=server_token, is_active=True)
             verify_server_if_needed(server)
         except Server.DoesNotExist:
             return JsonResponse({'error': 'Invalid server token'}, status=403, json_dumps_params={'ensure_ascii': False})
 
-        # Проверка типа наказания (если указан)
-        if punishment_type:
+        # Базовый запрос (только для текущего сервера)
+        punishments = Punishment.objects.filter(server=server).select_related('admin', 'server', 'unbanned_by')
+
+        # Фильтр по типу
+        if punishment_type and punishment_type != 'all':
             valid_types = ['ban', 'mute', 'gag']
             if punishment_type not in valid_types:
-                return JsonResponse({
-                    'error': f'Invalid punishment_type. Must be one of: {valid_types}'
-                }, status=400, json_dumps_params={'ensure_ascii': False})
-
-        # Получаем активные наказания
-        punishments = Punishment.objects.filter(
-            is_active=True,
-            server=server
-        ).select_related('admin', 'server')
-
-        # Фильтр по типу (если указан)
-        if punishment_type:
+                return JsonResponse({'error': f'Invalid punishment_type: {punishment_type}'}, status=400, json_dumps_params={'ensure_ascii': False})
             punishments = punishments.filter(punishment_type=punishment_type)
 
-        # Автоснятие истёкших
-        for punishment in punishments:
-            punishment.auto_expire()
+        # Фильтр по активности
+        if is_active is not None:
+            punishments = punishments.filter(is_active=is_active)
 
-        # Перезагружаем после автоснятия
-        punishments = punishments.filter(is_active=True).order_by('-issued_at')
+        # Автоснятие истёкших для активных
+        if is_active is None or is_active is True:
+            for punishment in punishments.filter(is_active=True):
+                punishment.auto_expire()
+            # Перезагружаем после автоснятия
+            punishments = Punishment.objects.filter(server=server).select_related('admin', 'server', 'unbanned_by')
+            if punishment_type and punishment_type != 'all':
+                punishments = punishments.filter(punishment_type=punishment_type)
+            if is_active is not None:
+                punishments = punishments.filter(is_active=is_active)
+
+        punishments = punishments.order_by('-issued_at')
 
         # Формируем список
         punishments_list = []
@@ -473,8 +476,12 @@ def get_active_punishments(request):
                 'expires_at': expires_at_local,
                 'duration': punishment.duration,
                 'is_permanent': punishment.duration == 0,
+                'is_active': punishment.is_active,
                 'admin': punishment.admin.name if punishment.admin else 'Консоль',
-                'server': punishment.server.name
+                'admin_steam_id': punishment.admin.steam_id if punishment.admin else None,
+                'server': punishment.server.name,
+                'unbanned_by': punishment.unbanned_by.name if punishment.unbanned_by else None,
+                'unban_reason': punishment.unban_reason
             })
 
         return JsonResponse({

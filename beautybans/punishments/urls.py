@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/add/', api.add_punishment, name='api_add_punishment'),
     path('api/remove/', api.remove_punishment, name='api_remove_punishment'),
     path('api/list/', api.get_active_punishments, name='api_list_punishments'),
+    path('api/search/', api.search_punishments, name='api_search_punishments'),
 ]
