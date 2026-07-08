@@ -15,7 +15,7 @@ echo "Running migrations..."
 python manage.py migrate --noinput
 
 echo "Collecting static files..."
-python manage.py collectstatic --noinput --clear
+python manage.py collectstatic --noinput
 
 echo "Setting up cron for auto-expiring..."
 # Создаём crontab файл с двумя задачами

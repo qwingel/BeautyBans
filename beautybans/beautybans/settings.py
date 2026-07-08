@@ -30,12 +30,36 @@ if URL_PREFIX and not URL_PREFIX.startswith('/'):
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-a4qez$en8pc_#j)c4c*gl4c^38kop+1#oixvf%-!=e!86+8561')
+SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+# HTTPS settings (когда BeautyBans за reverse-proxy с SSL)
+# Владелец должен установить ENABLE_HTTPS=True в .env после настройки сертификата
+ENABLE_HTTPS = os.environ.get('ENABLE_HTTPS', 'False') == 'True'
+
+if ENABLE_HTTPS:
+    # Доверяем заголовку X-Forwarded-Proto от nginx/reverse-proxy
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
+    # Безопасные куки только по HTTPS
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HTTP Strict Transport Security (HSTS) — браузер запомнит на 1 год
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Редирект HTTP → HTTPS (опционально — обычно делает nginx)
+    # SECURE_SSL_REDIRECT = True
+
+# Доверенные домены для CSRF (обязательно при HTTPS)
+# Формат: https://example.com,https://bans.example.com
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
 
 
 # Application definition
@@ -92,7 +116,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('POSTGRES_DB', 'beautybans'),
         'USER': os.environ.get('POSTGRES_USER', 'beautybans_user'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD', 'BeautyBans2026!'),
+        'PASSWORD': os.environ['POSTGRES_PASSWORD'],  # Обязательно из env — нет fallback
         'HOST': os.environ.get('POSTGRES_HOST', 'localhost'),
         'PORT': os.environ.get('POSTGRES_PORT', '5433'),
     }

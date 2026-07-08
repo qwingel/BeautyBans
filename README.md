@@ -43,6 +43,20 @@ URL_PREFIX=
 python3 -c "import secrets; print(secrets.token_urlsafe(50))"
 ```
 
+### Настройка HTTPS (опционально)
+
+Если вы настроили SSL-сертификат, добавьте в `.env`:
+
+```env
+ENABLE_HTTPS=True
+CSRF_TRUSTED_ORIGINS=https://bans.example.com
+```
+
+**После включения HTTPS перезапустите:**
+```bash
+docker compose up -d
+```
+
 ### Настройка URL
 ```env
 URL_PREFIX=/beautybans
@@ -57,11 +71,15 @@ URL_PREFIX=/beautybans
 **Nginx конфигурация для подкаталога:**
 ```nginx
 location /beautybans/ {
-    proxy_pass http://localhost:8000/beautybans/;
+    proxy_pass http://localhost:80/beautybans/;  # порт nginx из docker-compose
     proxy_set_header Host $host;
     proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;  # для HTTPS
 }
 ```
+
+**💡 Примечание:** BeautyBans уже включает nginx внутри Docker — порт `80` (или кастомный из `HTTP_PORT` в `.env`). Внешний nginx проксирует на него.
 
 
 #### 3. Запустить

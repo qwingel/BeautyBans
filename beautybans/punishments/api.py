@@ -51,9 +51,10 @@ def check_player(request):
         except Server.DoesNotExist:
             return JsonResponse({'error': 'Invalid server token'}, status=403, json_dumps_params={'ensure_ascii': False})
 
-        # Получаем активные наказания
+        # Получаем активные наказания НА ЭТОМ СЕРВЕРЕ (пер-сервер режим)
         punishments = Punishment.objects.filter(
             target_steam_id=steam_id,
+            server=server,
             is_active=True
         ).select_related('server')
 
@@ -64,12 +65,14 @@ def check_player(request):
         # Перезагружаем список активных наказаний после автоснятия
         active_punishments = Punishment.objects.filter(
             target_steam_id=steam_id,
+            server=server,
             is_active=True
         ).select_related('admin', 'server')
 
-        # Проверка IP бана
+        # Проверка IP бана (только на текущем сервере)
         if player_ip:
             ip_punishments = Punishment.objects.filter(
+                server=server,
                 target_ip__isnull=False,
                 is_active=True,
                 punishment_type='ban'
