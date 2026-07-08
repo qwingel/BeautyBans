@@ -18,10 +18,16 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
 echo "Setting up cron for auto-expiring..."
+# Экспортируем переменные окружения для cron
+printenv | grep -E '^(SECRET_KEY|DEBUG|POSTGRES_|ALLOWED_HOSTS|URL_PREFIX|ENABLE_HTTPS|CSRF_TRUSTED_ORIGINS|DJANGO_SETTINGS_MODULE)=' > /etc/environment
+
 # Создаём crontab файл с двумя задачами
 cat > /etc/cron.d/beautybans << 'EOF'
-*/5 * * * * root cd /app && /usr/local/bin/python manage.py expire_punishments >> /var/log/cron.log 2>&1
-*/5 * * * * root cd /app && /usr/local/bin/python manage.py expire_admin_permissions >> /var/log/cron.log 2>&1
+SHELL=/bin/bash
+PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+*/5 * * * * root . /etc/environment && cd /app && python manage.py expire_punishments >> /var/log/cron.log 2>&1
+*/5 * * * * root . /etc/environment && cd /app && python manage.py expire_admin_permissions >> /var/log/cron.log 2>&1
 EOF
 
 chmod 0644 /etc/cron.d/beautybans
