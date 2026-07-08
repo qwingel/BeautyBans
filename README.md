@@ -222,8 +222,8 @@ BeautyBans/
 
 ## 🌐 Плагины
 
-### CS 1.6 (AMX Mod X)
-🔜 В разработке
+### CS 1.6
+[AMXX BeautyBans](https://github.com/qwingel/BeautyBans_AMXX)
 
 ### CS 2 (CounterStrikeSharp)
 🔜 В разработке
