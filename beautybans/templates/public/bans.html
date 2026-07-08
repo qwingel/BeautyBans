@@ -86,9 +86,9 @@ document.querySelectorAll('.filter-select').forEach(select => {
                     {% if punishment.duration == 0 %}
                         <span class="badge badge-secondary">Перманент</span>
                     {% else %}
-                        {{ punishment.duration }} мин
-                        {% if punishment.is_active and punishment.get_time_remaining_minutes %}
-                            <br><span class="text-muted text-xs">Осталось: {{ punishment.get_time_remaining_minutes }} мин</span>
+                        {{ punishment.get_duration_display }}
+                        {% if punishment.is_active and punishment.get_time_remaining_display %}
+                            <br><span class="text-muted text-xs">Осталось: {{ punishment.get_time_remaining_display }}</span>
                         {% endif %}
                     {% endif %}
                 </td>

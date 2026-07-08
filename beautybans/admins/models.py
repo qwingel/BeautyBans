@@ -1,5 +1,6 @@
 from django.db import models
 from servers.models import Server
+from core.utils.timeformat import format_minutes
 
 
 class AdminGroup(models.Model):
@@ -71,3 +72,9 @@ class AdminServer(models.Model):
             return False
         from django.utils import timezone
         return timezone.now() >= self.expires_at
+
+    def get_duration_display(self):
+        """Читаемая длительность прав (например, '2 ч. 16 мин.')"""
+        if not self.duration or self.duration == 0:
+            return None  # постоянные — обрабатывается в шаблоне
+        return format_minutes(self.duration)

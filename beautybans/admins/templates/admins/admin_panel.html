@@ -260,10 +260,10 @@
                                     <div class="details-value mono">{{ perm.get_effective_flags|default:"—" }}</div>
                                 </div>
                                 <div class="details-item">
-                                    <div class="details-label">Длительность (мин)</div>
+                                    <div class="details-label">Длительность</div>
                                     <div class="details-value">
                                         {% if perm.duration > 0 %}
-                                            {{ perm.duration }}
+                                            {{ perm.get_duration_display }}
                                         {% else %}
                                             Постоянно
                                         {% endif %}

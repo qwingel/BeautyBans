@@ -2,6 +2,7 @@ from django.db import models
 from django.utils import timezone
 from servers.models import Server
 from admins.models import Admin
+from core.utils.timeformat import format_minutes
 
 
 class Punishment(models.Model):
@@ -59,6 +60,21 @@ class Punishment(models.Model):
         if delta:
             return int(delta.total_seconds() / 60)
         return None
+
+    def get_duration_display(self):
+        """Читаемая длительность наказания (например, '2 ч. 16 мин.')"""
+        if self.duration == 0:
+            return None  # перманент — обрабатывается в шаблоне
+        return format_minutes(self.duration)
+
+    def get_time_remaining_display(self):
+        """Читаемое оставшееся время (например, '1 д. 3 ч.')"""
+        minutes = self.get_time_remaining_minutes()
+        if minutes is None:
+            return None
+        if minutes <= 0:
+            return 'меньше минуты'
+        return format_minutes(minutes)
 
     def auto_expire(self):
         """Автоматически снимает наказание если оно истекло"""
