@@ -75,7 +75,10 @@
         {
             "type": "ban",
             "reason": "Читы",
-            "expires_at": "2026-07-01 15:30:00",
+            "admin": "AdminName",
+            "created_at": "2026-07-01 15:30:00",
+            "expires_at": "2026-07-01 17:30:00",
+            "duration": 120,
             "remaining_minutes": 120,
             "is_permanent": false
         }
@@ -86,6 +89,9 @@
 **Особенности:**
 - `expires_at` = `null` для перманентных наказаний
 - `remaining_minutes` = `null` для перманентных
+  - `admin` — имя выдавшего (или `null`/пусто для консоли)
+  - `created_at` — дата выдачи
+  - `duration` — исходная длительность в минутах (`0` = перманент)
 
 **Errors:**
 - `400` — Missing server_token or steam_id
@@ -208,10 +214,9 @@
 ```
 
 **Правила снятия:**
-1. **Запрос от консоли сервера** (без `admin_steam_id`) — может снять любое наказание
+1. **Консольные наказания** (`admin = NULL`) — может снять любой админ
 2. **Свои наказания** — админ может снять то, что сам выдал
 3. **Выше иммунитет** — если `admin_immunity > issuer_immunity`
-4. **Консольные наказания** (`admin = NULL`) — только админ с иммунитетом `>= 90`
 
 **Errors:**
 - `400` — Missing server_token or target_steam_id
@@ -376,6 +381,7 @@
             "admin": "AdminName",
             "admin_steam_id": "STEAM_0:1:654321",
             "server": "My Server",
+            "server_id": 5,
             "can_unban": true,
             "unban_reason": "Выдал сам"
         },
@@ -394,6 +400,7 @@
             "admin": "SuperAdmin",
             "admin_steam_id": "STEAM_0:1:111111",
             "server": "My Server",
+            "server_id": 5,
             "can_unban": false,
             "unban_reason": ""
         }

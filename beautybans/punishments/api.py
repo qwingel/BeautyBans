@@ -65,7 +65,7 @@ def check_player(request):
         active_punishments = Punishment.objects.filter(
             target_steam_id=steam_id,
             is_active=True
-        )
+        ).select_related('admin', 'server')
 
         # Проверка IP бана
         if player_ip:
@@ -101,10 +101,15 @@ def check_player(request):
             if punishment.expires_at:
                 expires_at_local = timezone.localtime(punishment.expires_at).strftime('%Y-%m-%d %H:%M:%S')
 
+            created_at_local = timezone.localtime(punishment.issued_at).strftime('%Y-%m-%d %H:%M:%S')
+
             punishments_list.append({
                 'type': punishment.punishment_type,
                 'reason': punishment.reason,
+                'admin': punishment.admin.name if punishment.admin else None,
+                'created_at': created_at_local,
                 'expires_at': expires_at_local,
+                'duration': punishment.duration,
                 'remaining_minutes': int(time_remaining.total_seconds() / 60) if time_remaining else None,
                 'is_permanent': punishment.duration == 0
             })
